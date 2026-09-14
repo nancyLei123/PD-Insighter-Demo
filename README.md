@@ -11,7 +11,7 @@ This is a compact, static version of PD Insighter for research review. It includ
 Python 3 is the only requirement.
 
 ```bash
-git clone <private-repository-url>
+git clone https://github.com/nancyLei123/PD-Insighter-Demo.git
 cd PD-Insighter-Demo
 python3 serve_demo.py
 ```
