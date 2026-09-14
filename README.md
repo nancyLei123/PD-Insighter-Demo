@@ -28,11 +28,11 @@ The dashboard opens at `http://127.0.0.1:8000`. Keep the terminal open and press
 | `60minutes_1` | Extended indoor and outdoor normal trial | about 56 minutes | Full Session, Manual Labels, Stride, Transitions |
 | `Ntrial3` | Short indoor trial for close review of gait and transitions | about 3.6 minutes | Full Session, Manual Labels, Stride, Transitions |
 
-The complete three-trial package is about 435 MiB. It includes derived plots, continuous predictions, transition windows, stride diagnostics, and saved manual labels. It does not include raw `.vrs` recordings or raw MPS trajectory and point-cloud files.
+The complete three-trial package is about 435 MiB. It includes derived plots, continuous automatic classifications, transition windows, stride diagnostics, and saved manual labels. It does not include raw `.vrs` recordings or raw MPS trajectory and point-cloud files.
 
 ## Dashboard Pages
 
-- **Full Session** shows the synchronized videos, continuous prediction bar, saved manual labels, motion totals, and time information.
+- **Full Session** shows the synchronized videos, continuous automatic-classification bar, saved manual labels, motion totals, and time information.
 - **Manual Labels** shows saved labels and supports local review edits. Changes remain in the professor's browser and do not alter Nancy's research files.
 - **Stride** shows SLAM height/speed signals, estimated step events, left/right estimates, stride proxies, and synchronized video validation.
 - **Transitions** treats motion changes as first-class states, shows their location in the full session, and supports focused playback with surrounding context.
@@ -44,7 +44,7 @@ The complete three-trial package is about 435 MiB. It includes derived plots, co
 - `Half_hour` uses lightly compressed 15 fps video: Aria is 640 x 640 and downward is 854 x 480.
 - `60minutes_1` uses compact 12 fps video: Aria is 576 x 576 and downward is 768 x 432.
 - `Ntrial3` keeps its existing higher-quality short-trial video.
-- Video compression changes only review quality. Motion predictions and plots were calculated from the original SLAM data before compression.
+- Video compression changes only review quality. Automatic motion classifications and plots were calculated from the original SLAM data before compression.
 - This is a research prototype and is not a clinically validated diagnostic system.
 
 ## Sharing Safely

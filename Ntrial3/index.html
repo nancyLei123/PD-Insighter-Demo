@@ -1318,13 +1318,13 @@
       <div class="eyebrow">PD-Insighter Clinician Review</div>
       <h1 id="heroTitle"></h1>
       <div class="hero-copy">
-        Review the synchronized videos against one gap-free prediction timeline. Drag across the prediction row to choose any start and end time, including a range that crosses several motions.
+        Review the synchronized videos against one gap-free automatic-classification timeline. Drag across the classification row to choose any start and end time, including a range that crosses several motions.
       </div>
       <div class="hero-pills">
         <span class="pill"><b>Trial</b> <span id="trialPill"></span></span>
         <span class="pill"><b>Recording</b> <span id="recordingPill"></span></span>
         <span class="pill"><b>Audio Source</b> <span id="audioPill"></span></span>
-        <span class="pill"><b>Prediction</b> Continuous motion periods</span>
+        <span class="pill"><b>Automatic Classification</b> Continuous motion periods</span>
       </div>
     </section>
 
@@ -1333,7 +1333,7 @@
         <div class="section-heading">
           <div>
             <h2>Time Spent in Data Capture (min)</h2>
-            <p>Motion totals from the continuous prediction across the synchronized session.</p>
+            <p>Motion totals from the continuous automatic classification across the synchronized session.</p>
           </div>
         </div>
         <div id="timeSpentBars" class="time-spent-bars"></div>
@@ -1368,7 +1368,7 @@
       <div class="section-heading">
         <div>
           <h2>Full Session Review</h2>
-          <p>One shared transport controls both views. Video position, prediction, and manual labels use the same horizontal session-time axis.</p>
+          <p>One shared transport controls both views. Video position, automatic classification, and manual labels use the same horizontal session-time axis.</p>
         </div>
       </div>
       <div class="media-grid">
@@ -1427,14 +1427,14 @@
         <div class="period-prediction-panel">
           <div class="period-prediction-heading">
             <div class="period-prediction-copy">
-              <strong>Enlarged Action Prediction</strong>
-              <span id="periodPredictionReadout">Prediction periods within this selection</span>
+              <strong>Enlarged Automatic Classification</strong>
+              <span id="periodPredictionReadout">Classification periods within this selection</span>
             </div>
             <div class="legend-slot">
               <div id="focusedMotionColorLegend" class="motion-color-legend" aria-label="Focused motion color key"></div>
             </div>
           </div>
-          <div id="periodPredictionTrack" class="timeline-track period-prediction-track" aria-label="Enlarged prediction for selected range"></div>
+          <div id="periodPredictionTrack" class="timeline-track period-prediction-track" aria-label="Enlarged automatic classification for selected range"></div>
           <div id="periodPredictionAxis" class="period-prediction-axis"></div>
         </div>
         <div class="period-scrubber-wrap">
@@ -1488,7 +1488,7 @@
           </div>
         </div>
         <div id="continuousTimelineRow" class="timeline-row continuous-timeline-row">
-          <div class="timeline-label">Continuous Prediction<span>drag to choose a range and play it immediately</span></div>
+          <div class="timeline-label">Continuous Automatic Classification<span>drag to choose a range and play it immediately</span></div>
           <div id="continuousTrack" class="timeline-track continuous-track"></div>
         </div>
         <div class="timeline-row">
@@ -1545,7 +1545,7 @@
       <div class="section-heading">
         <div>
           <h2>Transition Review</h2>
-          <p>Inspect the selected moment with variable local context and synchronized frame neighborhoods, without constraining review to prediction boundaries.</p>
+          <p>Inspect the selected moment with variable local context and synchronized frame neighborhoods, without constraining review to automatic-classification boundaries.</p>
         </div>
       </div>
       <div class="transition-toolbar">
@@ -1599,7 +1599,7 @@
         <div class="section-heading">
           <div>
             <h2>Current Motion Context</h2>
-            <p>Prediction boundary, manual-label agreement, and the current position within the selected continuous period.</p>
+            <p>Automatic-classification boundary, manual-label agreement, and the current position within the selected continuous period.</p>
           </div>
         </div>
         <div id="clipPanel" class="metric-grid"></div>
@@ -1608,7 +1608,7 @@
         <div class="section-heading">
           <div>
             <h2>Manual Label Alignment</h2>
-            <p>Saved manual ranges use the same Aria-based session clock as the videos and prediction.</p>
+            <p>Saved manual ranges use the same Aria-based session clock as the videos and automatic classification.</p>
           </div>
         </div>
         <div class="annotation-panel">
@@ -2748,8 +2748,8 @@
       if (hasContinuousPrediction) {
         buildTimelineTrack(continuousTrack, continuousSegments, selectedRange, { rangeSelectable: true });
         continuousPredictionNote.innerHTML = `
-          <strong>Continuous prediction</strong>
-          <span>Drag freely across the prediction row to set and immediately play a review range. The selection may include part of one motion or cross several motions.</span>
+          <strong>Continuous automatic classification</strong>
+          <span>Drag freely across the classification row to set and immediately play a review range. The selection may include part of one motion or cross several motions.</span>
           <span>${continuousSegments.length} variable-length motion periods in this session.</span>
         `;
       }
@@ -2919,8 +2919,8 @@
         playhead.style.left = `${clamp(((currentTime - start) / duration) * 100, 0, 100)}%`;
       }
       periodPredictionReadout.textContent = rangeSegments.length
-        ? `${rangeSegments.length} variable-length prediction periods · hover a color block for its exact action and time`
-        : "No action prediction in this selection";
+        ? `${rangeSegments.length} variable-length classification periods · hover a color block for its exact action and time`
+        : "No automatic classification in this selection";
     }
 
     function renderPeriodPlayer(activeClip) {
@@ -2943,9 +2943,9 @@
       const predictionSequence = getDistinctPredictionSequence(rangeSegments);
       const sequenceText = predictionSequence.length
         ? predictionSequence.join(" → ")
-        : "No prediction in selected range";
+        : "No automatic classification in selected range";
       const badgeText = predictionSequence.length === 0
-        ? "No prediction"
+        ? "No automatic classification"
         : (predictionSequence.length === 1 ? predictionSequence[0] : `${predictionSequence.length} motions`);
 
       periodTitle.textContent = "Custom time range";
@@ -2963,11 +2963,11 @@
       if (document.activeElement !== selectionStartInput) selectionStartInput.value = start.toFixed(2);
       if (document.activeElement !== selectionEndInput) selectionEndInput.value = end.toFixed(2);
       periodDetailGrid.innerHTML = `
-        <div class="period-detail"><b>Predictions In Selection</b><span>${escapeHtml(sequenceText)}</span></div>
-        <div class="period-detail"><b>Prediction Periods Crossed</b><span>${rangeSegments.length}</span></div>
-        <div class="period-detail"><b>Current Prediction</b><span>${escapeHtml(review.segment?.label || "not available")}</span></div>
+        <div class="period-detail"><b>Classifications In Selection</b><span>${escapeHtml(sequenceText)}</span></div>
+        <div class="period-detail"><b>Classification Periods Crossed</b><span>${rangeSegments.length}</span></div>
+        <div class="period-detail"><b>Current Automatic Classification</b><span>${escapeHtml(review.segment?.label || "not available")}</span></div>
         <div class="period-detail"><b>Manual At Current Time</b><span>${escapeHtml(review.manualLabel)}</span></div>
-        <div class="period-detail"><b>Current Prediction / Manual</b><span>${escapeHtml(review.agreementText)}</span></div>
+        <div class="period-detail"><b>Automatic Classification / Manual</b><span>${escapeHtml(review.agreementText)}</span></div>
       `;
       playPeriodButton.textContent = !ariaVideo.paused && selectionPlaybackEndS != null
         ? "Pause Selection"
@@ -2986,7 +2986,7 @@
         <div class="summary-card"><b>Continuous Periods</b><span>${continuousSegments.length}</span></div>
         <div class="summary-card"><b>Continuous Time Accuracy</b><span>${fmtAccuracy(continuousAccuracy.continuous_v1_accuracy)}</span></div>
         <div class="summary-card"><b>Manual Coverage</b><span>${getManualCoveragePercent().toFixed(1)}%</span></div>
-        <div class="summary-card"><b>Current Prediction</b><span>${escapeHtml(review.segment?.label || "not available")}</span></div>
+        <div class="summary-card"><b>Current Automatic Classification</b><span>${escapeHtml(review.segment?.label || "not available")}</span></div>
         <div class="summary-card"><b>Current Manual Label</b><span>${escapeHtml(review.manualLabel)}</span></div>
         <div class="summary-card"><b>Current Alignment</b><span>${escapeHtml(review.agreementText)}</span></div>
         <div class="summary-card"><b>Selected Review Range</b><span class="mono">${fmtTime(getSelectedReviewRange().start_s)} - ${fmtTime(getSelectedReviewRange().end_s)}</span></div>
@@ -3004,13 +3004,13 @@
         ? `${formatBoundarySource(segment.start_boundary_source)} · ${String(segment.start_boundary_confidence || "not rated").replaceAll("_", " ")}`
         : "N/A";
       clipPanel.innerHTML = `
-        <div class="metric-card"><b>Prediction Now</b><span>${escapeHtml(segment?.label || "not available")}</span></div>
-        <div class="metric-card"><b>Current Prediction Period</b><span class="mono">${segment ? `${fmtTime(segmentStart)} - ${fmtTime(segmentEnd)}` : "N/A"}</span></div>
+        <div class="metric-card"><b>Current Automatic Classification</b><span>${escapeHtml(segment?.label || "not available")}</span></div>
+        <div class="metric-card"><b>Current Classification Period</b><span class="mono">${segment ? `${fmtTime(segmentStart)} - ${fmtTime(segmentEnd)}` : "N/A"}</span></div>
         <div class="metric-card"><b>Selected Review Range</b><span class="mono">${fmtTime(selection.start_s)} - ${fmtTime(selection.end_s)}</span></div>
         <div class="metric-card"><b>Selection Duration</b><span class="mono">${fmtTime(selectionDuration)}</span></div>
         <div class="metric-card"><b>Current Boundary Evidence</b><span>${escapeHtml(boundaryText)}</span></div>
         <div class="metric-card"><b>Manual Label Now</b><span>${escapeHtml(review.manualLabel)}</span></div>
-        <div class="metric-card"><b>Prediction / Manual</b><span>${escapeHtml(review.agreementText)}</span></div>
+        <div class="metric-card"><b>Automatic Classification / Manual</b><span>${escapeHtml(review.agreementText)}</span></div>
       `;
     }
 
