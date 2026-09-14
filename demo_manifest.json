@@ -2,6 +2,7 @@
   "format": "pd-insighter-static-demo-v1",
   "trials": [
     "Half_hour",
+    "60minutes_1",
     "Ntrial3"
   ],
   "pages_per_trial": [
@@ -22,6 +23,18 @@
       "view": "downward",
       "path": "Half_hour/media/downward.mp4",
       "size_mib": 80.98
+    },
+    {
+      "trial_id": "60minutes_1",
+      "view": "aria",
+      "path": "60minutes_1/media/aria.mp4",
+      "size_mib": 83.6
+    },
+    {
+      "trial_id": "60minutes_1",
+      "view": "downward",
+      "path": "60minutes_1/media/downward.mp4",
+      "size_mib": 85.43
     },
     {
       "trial_id": "Ntrial3",

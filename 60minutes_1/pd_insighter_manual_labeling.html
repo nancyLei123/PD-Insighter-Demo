@@ -1,0 +1,1645 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PD-Insighter Manual Labeling</title>
+  <style>
+    :root {
+      --bg: #f4f1e8;
+      --card: rgba(255,255,255,.94);
+      --ink: #17231c;
+      --muted: #657066;
+      --line: rgba(35,48,40,.13);
+      --green: #167a55;
+      --green-soft: #e7f4ec;
+      --danger: #b94338;
+      --shadow: 0 18px 45px rgba(31,43,35,.10);
+      --sitting: #e6ab02;
+      --standing: #7570b3;
+      --walking: #d95f02;
+      --upstairs: #1b9e77;
+      --downstairs: #666666;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 8% 8%, rgba(22,122,85,.13), transparent 28%),
+        linear-gradient(135deg, #f8f4e8 0%, #eef3ed 54%, #f5f1e8 100%);
+      color: var(--ink);
+      font-family: Avenir Next, Trebuchet MS, Verdana, sans-serif;
+    }
+    button, select, input, textarea {
+      font: inherit;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      color: var(--ink);
+      padding: 10px 13px;
+      min-height: 42px;
+    }
+    button {
+      cursor: pointer;
+      font-weight: 850;
+      box-shadow: 0 6px 16px rgba(35,48,40,.06);
+    }
+    button.primary { background: var(--green); border-color: var(--green); color: #fff; }
+    button.danger { color: var(--danger); border-color: rgba(185,67,56,.35); }
+    button:disabled { opacity: .45; cursor: not-allowed; }
+    button.icon-button {
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      justify-content: center;
+      border-radius: 999px;
+      line-height: 1;
+      font-size: 16px;
+      background: rgba(255,255,255,.86);
+    }
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    textarea {
+      border-radius: 18px;
+      min-height: 86px;
+      resize: vertical;
+      text-transform: none;
+      letter-spacing: 0;
+      font-weight: 600;
+      width: 100%;
+    }
+    .shell { max-width: 1720px; margin: 0 auto; padding: 22px; display: grid; gap: 18px; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 28px; box-shadow: var(--shadow); padding: 18px; }
+    .page-nav {
+      position: sticky;
+      top: 12px;
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 12px 14px;
+      border: 1px solid rgba(23,35,28,.10);
+      border-radius: 20px;
+      background: rgba(255,255,255,.94);
+      box-shadow: 0 14px 36px rgba(31,43,35,.10);
+      backdrop-filter: blur(14px);
+    }
+    .nav-context { display: flex; align-items: center; gap: 11px; flex: 0 0 auto; min-width: 190px; }
+    .nav-mark {
+      width: 38px;
+      height: 38px;
+      border-radius: 13px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      background: linear-gradient(145deg, var(--green), #10563e);
+      box-shadow: 0 8px 18px rgba(16,86,62,.20);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .04em;
+    }
+    .nav-location { display: grid; gap: 2px; min-width: 0; line-height: 1.1; }
+    .nav-location strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .92rem; }
+    .nav-location span { color: var(--muted); font-size: .76rem; font-weight: 800; }
+    .nav-tabs {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      flex: 1 1 auto;
+      min-width: 0;
+      padding: 4px;
+      border: 1px solid rgba(23,35,28,.10);
+      border-radius: 16px;
+      background: rgba(23,35,28,.045);
+    }
+    .nav-tab {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 36px;
+      padding: 0 12px;
+      border-radius: 12px;
+      color: var(--muted);
+      text-decoration: none;
+      white-space: nowrap;
+      font-size: 13px;
+      font-weight: 900;
+    }
+    .nav-tab:hover { color: var(--ink); background: rgba(255,255,255,.76); }
+    .nav-tab.active { color: var(--green); background: #fff; box-shadow: 0 4px 12px rgba(31,43,35,.08); }
+    .nav-trial-switcher { display: flex; align-items: center; gap: 9px; flex: 0 1 340px; min-width: 250px; }
+    .nav-trial-switcher > span { color: var(--muted); font-size: .7rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+    .nav-trial-select { width: 100%; min-width: 0; border-radius: 13px; }
+    .hero { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(320px, .6fr); gap: 18px; align-items: stretch; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { font-size: clamp(32px, 4vw, 58px); line-height: .95; letter-spacing: -.055em; margin-bottom: 12px; }
+    h2 { font-size: 22px; letter-spacing: -.035em; margin-bottom: 6px; }
+    p { color: var(--muted); line-height: 1.5; }
+    .pills { display: flex; flex-wrap: wrap; gap: 8px; }
+    .pill { display: inline-flex; gap: 6px; align-items: center; border: 1px solid var(--line); border-radius: 999px; padding: 8px 11px; background: #fff; color: var(--muted); font-weight: 800; font-size: 13px; }
+    .summary-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .metric { background: #fff; border: 1px solid var(--line); border-radius: 20px; padding: 13px; }
+    .metric b { display: block; font-size: 24px; letter-spacing: -.04em; }
+    .metric span { color: var(--muted); font-size: 12px; font-weight: 850; text-transform: uppercase; letter-spacing: .06em; }
+    .video-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; }
+    .video-card { min-width: 0; }
+    .video-card h2 { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .video-frame { position: relative; min-width: 0; background: #07100b; border-radius: 22px; overflow: hidden; aspect-ratio: 16/9; display: grid; place-items: center; }
+    .aria-frame { aspect-ratio: 1/1; }
+    video { width: 100%; height: 100%; object-fit: contain; display: block; }
+    #downwardVideo { transform: rotate(180deg); }
+    #ariaVideo { transform: rotate(90deg); }
+    .rotated-quarter {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: var(--rotated-video-width, auto);
+      height: var(--rotated-video-height, 100%);
+      max-width: none;
+      max-height: none;
+    }
+    .controls { display: grid; gap: 12px; }
+    .control-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
+    .time-readout { margin-left: auto; font-size: 24px; font-weight: 950; letter-spacing: -.04em; }
+    input[type="range"] { width: 100%; padding: 0; accent-color: var(--green); }
+    .timeline-stack { display: grid; gap: 14px; }
+    .timeline-row { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 12px; align-items: center; }
+    .timeline-label { color: var(--muted); font-weight: 950; text-transform: uppercase; font-size: 12px; letter-spacing: .06em; }
+    .timeline { position: relative; height: 68px; background: #fff; border: 1px solid var(--line); border-radius: 18px; overflow: hidden; touch-action: none; }
+    .overview-timeline { height: 48px; cursor: pointer; }
+    .model-seg, .manual-seg, .gap-seg, .drag-preview, .playhead, .overview-seg, .overview-window { position: absolute; top: 0; bottom: 0; }
+    .model-seg { opacity: .72; border-right: 1px solid rgba(255,255,255,.42); cursor: pointer; }
+    .manual-seg { top: 8px; bottom: 8px; border-radius: 15px; border: 2px solid rgba(23,35,28,.42); opacity: .9; cursor: pointer; overflow: hidden; }
+    .manual-seg.active { border: 3px solid var(--ink); box-shadow: 0 0 0 5px rgba(22,122,85,.12); }
+    .manual-seg span { display: block; padding: 8px 42px 8px 10px; font-size: 12px; font-weight: 950; white-space: nowrap; color: #142119; text-shadow: 0 1px 0 rgba(255,255,255,.45); }
+    .manual-delete { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); z-index: 3; }
+    .gap-seg { top: 8px; bottom: 8px; border-radius: 15px; background: repeating-linear-gradient(135deg, rgba(185,67,56,.18), rgba(185,67,56,.18) 8px, rgba(185,67,56,.06) 8px, rgba(185,67,56,.06) 16px); border: 2px dashed rgba(185,67,56,.45); cursor: pointer; }
+    .gap-seg:hover { background: rgba(185,67,56,.18); }
+    .drag-preview { top: 8px; bottom: 8px; border-radius: 15px; border: 3px dashed var(--ink); background: rgba(22,122,85,.18); pointer-events: none; }
+    .pending-seg { position: absolute; top: 8px; bottom: 8px; border-radius: 15px; border: 3px solid var(--ink); background: rgba(22,122,85,.18); pointer-events: none; z-index: 6; box-shadow: 0 0 0 4px rgba(22,122,85,.10); }
+    .playhead { width: 3px; background: var(--ink); pointer-events: none; z-index: 20; }
+    .overview-seg { border-right: 1px solid rgba(255,255,255,.35); cursor: pointer; }
+    .overview-model-seg { top: 7px; bottom: 25px; opacity: .42; }
+    .overview-manual-seg { top: 24px; bottom: 7px; opacity: .88; border-radius: 5px; }
+    .overview-window { border: 3px solid var(--ink); border-radius: 12px; background: rgba(22,122,85,.08); pointer-events: none; z-index: 8; }
+    .window-toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; margin: 0 0 12px; }
+    .window-toolbar label.inline-check { flex-direction: row; align-items: center; gap: 8px; min-width: auto; }
+    .window-toolbar label.inline-check input { width: auto; }
+    .pending-panel {
+      display: grid;
+      gap: 12px;
+      margin: 12px 0;
+      padding: 14px;
+      border: 2px solid rgba(22,122,85,.28);
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(22,122,85,.10), rgba(255,255,255,.86));
+    }
+    .pending-panel.hidden { display: none; }
+    .pending-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .pending-actions button { color: #142119; border-color: rgba(23,35,28,.28); }
+    .relabel-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: -4px; }
+    .relabel-actions button { color: #142119; border-color: rgba(23,35,28,.28); }
+    .relabel-actions button.active { outline: 3px solid rgba(23,35,28,.32); box-shadow: 0 0 0 5px rgba(22,122,85,.10); }
+    .pending-meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; color: var(--muted); font-size: 13px; font-weight: 800; }
+    .manual-grid { display: grid; grid-template-columns: minmax(0, 1fr) 420px; gap: 18px; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; margin: 12px 0; }
+    .editor { display: grid; gap: 12px; align-content: start; }
+    .editor-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .status { color: var(--muted); font-weight: 800; font-size: 13px; }
+    .sync-status {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      padding: 7px 10px;
+      background: #fff;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .sync-status.good { color: var(--green); background: var(--green-soft); border-color: rgba(22,122,85,.25); }
+    .sync-status.adjusting { color: #8a5b00; background: #fff5d8; border-color: rgba(138,91,0,.25); }
+    .sync-status.ended { color: var(--muted); background: #f1f3f1; }
+    .legend { display: flex; flex-wrap: wrap; gap: 8px; }
+    .legend span { display: inline-flex; gap: 6px; align-items: center; color: var(--muted); font-weight: 800; font-size: 13px; }
+    .swatch { width: 14px; height: 14px; border-radius: 4px; border: 1px solid rgba(0,0,0,.1); }
+    .small { font-size: 12px; color: var(--muted); line-height: 1.45; }
+    .mono { font-family: Menlo, Consolas, monospace; }
+    .segment-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: stretch; margin-bottom: 8px; }
+    .segment-main { width: 100%; justify-content: flex-start; border-radius: 16px; text-align: left; min-width: 0; }
+    .segment-main span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .segment-list-delete { border-radius: 16px; padding-inline: 12px; background: #fff; }
+    @media (max-width: 1050px) {
+      .hero, .video-grid, .manual-grid { grid-template-columns: 1fr; }
+      .timeline-row { grid-template-columns: 1fr; }
+      .time-readout { margin-left: 0; }
+    }
+    @media (max-width: 760px) {
+      .shell { padding: 12px; }
+      .page-nav { position: static; display: grid; align-items: stretch; }
+      .nav-context { min-width: 0; }
+      .nav-tabs { justify-content: flex-start; overflow-x: auto; }
+      .nav-tab { flex: 0 0 auto; }
+      .nav-trial-switcher { min-width: 0; max-width: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <nav class="page-nav" aria-label="PD Insighter navigation">
+      <div class="nav-context">
+        <span class="nav-mark" aria-hidden="true">PD</span>
+        <div class="nav-location">
+          <strong id="trialPill"></strong>
+          <span>Manual Labels</span>
+        </div>
+      </div>
+      <div class="nav-tabs" aria-label="Trial views">
+        <a id="fullReviewLink" class="nav-tab" href="#">Full Session</a>
+        <span class="nav-tab active" aria-current="page">Manual Labels</span>
+        <a id="strideReviewLink" class="nav-tab" href="#">Stride</a>
+        <a id="transitionReviewLink" class="nav-tab" href="#">Transitions</a>
+      </div>
+      <label class="nav-trial-switcher" for="trialJumpSelect">
+        <span>Trial</span>
+        <select id="trialJumpSelect" class="nav-trial-select" aria-label="Switch trial or return to all trials"></select>
+      </label>
+    </nav>
+
+    <section class="hero">
+      <div class="card">
+        <h1>Full-Session Manual Labeling</h1>
+        <p>Use this page for long normal trials when spoken labels are missing or unreliable. Press Space to play/pause, drag directly on the manual timeline to label action ranges, and keep the whole session covered without overlapping labels.</p>
+        <div class="pills">
+          <span class="pill">Space = play/pause</span>
+          <span class="pill">Drag-to-label ranges</span>
+          <span class="pill">Existing labels are protected</span>
+          <span class="pill">New labels fill empty time only</span>
+          <span class="pill">Gap finder</span>
+          <span class="pill">Saved outside regenerated HTML</span>
+        </div>
+      </div>
+      <aside class="card summary-grid">
+        <div class="metric"><b id="coverageMetric">--</b><span>Manual Coverage</span></div>
+        <div class="metric"><b id="gapMetric">--</b><span>Unlabeled Gaps</span></div>
+        <div class="metric"><b id="transitionAwareMetric">--</b><span>Transition-Aware Agreement</span></div>
+        <div class="metric"><b id="exactMetric">--</b><span>Exact Agreement</span></div>
+      </aside>
+    </section>
+
+    <section class="video-grid">
+      <div class="card video-card">
+        <h2>Downward View <button id="rotateDownwardBtn" type="button">Rotate Downward 90°</button></h2>
+        <div class="video-frame"><video id="downwardVideo" playsinline muted preload="metadata"></video></div>
+      </div>
+      <div class="card video-card">
+        <h2>Aria View <button id="rotateAriaBtn" type="button">Rotate Aria 90°</button></h2>
+        <div class="video-frame aria-frame"><video id="ariaVideo" playsinline preload="metadata"></video></div>
+      </div>
+    </section>
+
+    <section class="card controls">
+      <div class="control-row">
+        <button id="playBtn" class="primary" type="button">Play</button>
+        <button id="pauseBtn" type="button">Pause</button>
+        <button id="backBtn" type="button">-2s</button>
+        <button id="forwardBtn" type="button">+2s</button>
+        <button id="startRangeBtn" type="button">Start Label Here</button>
+        <button id="endRangeBtn" class="primary" type="button">End Here + Save</button>
+        <button id="cancelRangeBtn" type="button">Cancel Start</button>
+        <label>Speed
+          <select id="speedSelect">
+            <option value="0.5">0.5x</option>
+            <option value="0.75">0.75x</option>
+            <option value="1" selected>1.0x</option>
+            <option value="1.25">1.25x</option>
+            <option value="1.5">1.5x</option>
+          </select>
+        </label>
+        <div class="time-readout"><span id="timeNow">0.0s</span> / <span id="timeTotal">--</span></div>
+      </div>
+      <input id="scrubber" type="range" min="0" max="1" step="0.01" value="0" />
+      <div id="syncStatus" class="sync-status">Sync checking...</div>
+      <div class="small">Tip: press Space to play/pause. Pause at the start point, keep “Start drag from playhead” checked, then drag to the end point and choose the motion label. Existing labels are protected; new labels only fill unlabeled time. Use the ×, Delete/Backspace, or the list Delete button to remove a label.</div>
+    </section>
+
+    <section class="card">
+      <h2>Timeline</h2>
+      <div class="window-toolbar">
+        <label>Timeline window
+          <select id="timelineWindowSelect">
+            <option value="30">30 seconds</option>
+            <option value="60">1 minute</option>
+            <option value="120" selected>2 minutes</option>
+            <option value="300">5 minutes</option>
+            <option value="600">10 minutes</option>
+            <option value="full">Full session</option>
+          </select>
+        </label>
+        <button id="prevWindowBtn" type="button">← Previous Window</button>
+        <button id="nextWindowBtn" type="button">Next Window →</button>
+        <button id="centerWindowBtn" type="button">Center On Video</button>
+        <button id="fullWindowBtn" type="button">Show Full Session</button>
+        <label class="inline-check">
+          <input id="followWindowCheckbox" type="checkbox" checked />
+          Follow video
+        </label>
+        <label class="inline-check" title="When checked, dragging on the manual row starts from the current video/playhead time instead of the mouse-down point.">
+          <input id="usePlayheadDragStartCheckbox" type="checkbox" checked />
+          Start drag from playhead
+        </label>
+        <span id="timelineWindowStatus" class="status">Timeline window loading...</span>
+      </div>
+      <div class="timeline-stack">
+        <div class="timeline-row">
+          <div class="timeline-label">Session Overview</div>
+          <div id="overviewTimeline" class="timeline overview-timeline"></div>
+        </div>
+        <div class="timeline-row">
+          <div class="timeline-label">Continuous Prediction<br><span class="small">variable periods; 0.5s boundary evidence</span></div>
+          <div id="modelTimeline" class="timeline"></div>
+        </div>
+        <div class="timeline-row">
+          <div class="timeline-label">Manual Labels<br><span class="small">drag here</span></div>
+          <div id="manualTimeline" class="timeline"></div>
+        </div>
+      </div>
+      <div class="toolbar">
+        <label>Default label for gap tools
+          <select id="labelSelect">
+            <option value="sitting">sitting</option>
+            <option value="standing">standing</option>
+            <option value="walking" selected>walking</option>
+            <option value="upstairs">upstairs</option>
+            <option value="downstairs">downstairs</option>
+          </select>
+        </label>
+        <label>Confidence
+          <select id="confidenceSelect">
+            <option value="high">high</option>
+            <option value="medium" selected>medium</option>
+            <option value="low">low</option>
+            <option value="uncertain">uncertain</option>
+          </select>
+        </label>
+        <button id="startGapBtn" type="button">Jump To Next Gap</button>
+        <button id="fillCurrentGapBtn" type="button">Fill Current Gap</button>
+        <button id="fillAllGapsBtn" type="button">Fill All Gaps With Current Label</button>
+        <button id="saveAllBtn" class="primary" type="button">Save Manual Labels</button>
+        <span id="saveStatus" class="status">Loading manual labels...</span>
+      </div>
+      <div id="pendingPanel" class="pending-panel hidden">
+        <div>
+          <h3 style="margin-bottom:4px;">Choose Label For Selected Range</h3>
+          <div class="pending-meta">
+            <span id="pendingRangeText">No range selected.</span>
+            <span id="pendingRangeHint"></span>
+          </div>
+        </div>
+        <div id="pendingActionButtons" class="pending-actions">
+          <button type="button" data-pending-label="sitting" style="background:#e6ab02;">sitting</button>
+          <button type="button" data-pending-label="standing" style="background:#7570b3;color:#fff;">standing</button>
+          <button type="button" data-pending-label="walking" style="background:#d95f02;color:#fff;">walking</button>
+          <button type="button" data-pending-label="upstairs" style="background:#1b9e77;color:#fff;">upstairs</button>
+          <button type="button" data-pending-label="downstairs" style="background:#666666;color:#fff;">downstairs</button>
+          <button id="pendingCancelBtn" type="button">Cancel Selection</button>
+        </div>
+      </div>
+      <div id="legend" class="legend"></div>
+    </section>
+
+    <section class="manual-grid">
+      <div class="card">
+        <h2>Manual Segments</h2>
+        <p class="small">Select a segment below or click a segment on the manual timeline to edit it precisely.</p>
+        <div id="segmentList"></div>
+      </div>
+      <aside class="card editor">
+        <h2>Selected Segment</h2>
+        <label>Segment
+          <select id="segmentSelect"></select>
+        </label>
+        <div class="editor-grid">
+          <label>Start (s)
+            <input id="startInput" type="number" min="0" step="0.1" />
+          </label>
+          <label>End (s)
+            <input id="endInput" type="number" min="0" step="0.1" />
+          </label>
+        </div>
+        <label>Motion
+          <select id="segmentLabelSelect">
+            <option value="sitting">sitting</option>
+            <option value="standing">standing</option>
+            <option value="walking">walking</option>
+            <option value="upstairs">upstairs</option>
+            <option value="downstairs">downstairs</option>
+          </select>
+        </label>
+        <div id="selectedActionButtons" class="relabel-actions" aria-label="Change selected segment action">
+          <button type="button" data-relabel-action="sitting" style="background:#e6ab02;">Change to sitting</button>
+          <button type="button" data-relabel-action="standing" style="background:#7570b3;color:#fff;">Change to standing</button>
+          <button type="button" data-relabel-action="walking" style="background:#d95f02;color:#fff;">Change to walking</button>
+          <button type="button" data-relabel-action="upstairs" style="background:#1b9e77;color:#fff;">Change to upstairs</button>
+          <button type="button" data-relabel-action="downstairs" style="background:#666666;color:#fff;">Change to downstairs</button>
+        </div>
+        <label>Segment confidence
+          <select id="segmentConfidenceSelect">
+            <option value="high">high</option>
+            <option value="medium">medium</option>
+            <option value="low">low</option>
+            <option value="uncertain">uncertain</option>
+          </select>
+        </label>
+        <label>Note
+          <textarea id="noteInput" placeholder="Optional note, e.g. waiting at traffic light, uncertain slope, crowd blocking view..."></textarea>
+        </label>
+        <div class="toolbar">
+          <button id="setStartBtn" type="button">Set Start Here</button>
+          <button id="setEndBtn" type="button">Set End Here</button>
+          <button id="saveSegmentBtn" class="primary" type="button">Save Segment</button>
+          <button id="deleteSegmentBtn" class="danger" type="button">Delete Segment</button>
+        </div>
+        <p id="editorStatus" class="status">No segment selected yet.</p>
+      </aside>
+    </section>
+  </main>
+
+  <script>
+    const data = {"trial_id": "60minutes_1", "recording_stem": "60_minutes_indoor", "session_duration_s": 3400.0, "downward_session_duration_s": 3400.0, "session_fps": 30.0, "downward_session_video_uri": "media/downward.mp4", "aria_session_video_uri": "media/aria.mp4", "model_segments": [{"segment_index": 0, "label": "sitting", "start_s": 0.0, "end_s": 474.0, "duration_s": 474.0, "color": "#e6ab02", "source": "continuous_v1", "start_boundary_source": "session_start", "start_boundary_confidence": "high"}, {"segment_index": 1, "label": "standing", "start_s": 474.0, "end_s": 476.0, "duration_s": 2.0, "color": "#7570b3", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 2, "label": "walking", "start_s": 476.0, "end_s": 480.0, "duration_s": 4.0, "color": "#d95f02", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 3, "label": "standing", "start_s": 480.0, "end_s": 487.5, "duration_s": 7.5, "color": "#7570b3", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 4, "label": "walking", "start_s": 487.5, "end_s": 519.0, "duration_s": 31.5, "color": "#d95f02", "source": "continuous_v1", "start_boundary_source": "refined_0.5s_evidence", "start_boundary_confidence": "medium"}, {"segment_index": 5, "label": "standing", "start_s": 519.0, "end_s": 520.0, "duration_s": 1.0, "color": "#7570b3", "source": "continuous_v1", "start_boundary_source": "refined_0.5s_evidence", "start_boundary_confidence": "medium"}, {"segment_index": 6, "label": "walking", "start_s": 520.0, "end_s": 540.0, "duration_s": 20.0, "color": "#d95f02", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 7, "label": "standing", "start_s": 540.0, "end_s": 551.0, "duration_s": 11.0, "color": "#7570b3", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 8, "label": "walking", "start_s": 551.0, "end_s": 578.0, "duration_s": 27.0, "color": "#d95f02", "source": "continuous_v1", "start_boundary_source": "refined_0.5s_evidence", "start_boundary_confidence": "medium"}, {"segment_index": 9, "label": "standing", "start_s": 578.0, "end_s": 592.0, "duration_s": 14.0, "color": "#7570b3", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 10, "label": "walking", "start_s": 592.0, "end_s": 594.0, "duration_s": 2.0, "color": "#d95f02", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 11, "label": "standing", "start_s": 594.0, "end_s": 596.0, "duration_s": 2.0, "color": "#7570b3", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 12, "label": "walking", "start_s": 596.0, "end_s": 599.0, "duration_s": 3.0, "color": "#d95f02", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 13, "label": "standing", "start_s": 599.0, "end_s": 604.0, "duration_s": 5.0, "color": "#7570b3", "source": "continuous_v1", "start_boundary_source": "refined_0.5s_evidence", "start_boundary_confidence": "medium"}, {"segment_index": 14, "label": "sitting", "start_s": 604.0, "end_s": 1236.0, "duration_s": 632.0, "color": "#e6ab02", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 15, "label": "standing", "start_s": 1236.0, "end_s": 1238.0, "duration_s": 2.0, "color": "#7570b3", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 16, "label": "walking", "start_s": 1238.0, "end_s": 1240.0, "duration_s": 2.0, "color": "#d95f02", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 17, "label": "standing", "start_s": 1240.0, "end_s": 1243.0, "duration_s": 3.0, "color": "#7570b3", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 18, "label": "walking", "start_s": 1243.0, "end_s": 1245.0, "duration_s": 2.0, "color": "#d95f02", "source": "continuous_v1", "start_boundary_source": "refined_0.5s_evidence", "start_boundary_confidence": "medium"}, {"segment_index": 19, "label": "standing", "start_s": 1245.0, "end_s": 1260.0, "duration_s": 15.0, "color": "#7570b3", "source": "continuous_v1", "start_boundary_source": "refined_0.5s_evidence", "start_boundary_confidence": "medium"}, {"segment_index": 20, "label": "walking", "start_s": 1260.0, "end_s": 1275.0, "duration_s": 15.0, "color": "#d95f02", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 21, "label": "standing", "start_s": 1275.0, "end_s": 1279.0, "duration_s": 4.0, "color": "#7570b3", "source": "continuous_v1", "start_boundary_source": "refined_0.5s_evidence", "start_boundary_confidence": "medium"}, {"segment_index": 22, "label": "walking", "start_s": 1279.0, "end_s": 1335.0, "duration_s": 56.0, "color": "#d95f02", "source": "continuous_v1", "start_boundary_source": "refined_0.5s_evidence", "start_boundary_confidence": "medium"}, {"segment_index": 23, "label": "standing", "start_s": 1335.0, "end_s": 1337.0, "duration_s": 2.0, "color": "#7570b3", "source": "continuous_v1", "start_boundary_source": "refined_0.5s_evidence", "start_boundary_confidence": "medium"}, {"segment_index": 24, "label": "walking", "start_s": 1337.0, "end_s": 1342.0, "duration_s": 5.0, "color": "#d95f02", "source": "continuous_v1", "start_boundary_source": "refined_0.5s_evidence", "start_boundary_confidence": "medium"}, {"segment_index": 25, "label": "standing", "start_s": 1342.0, "end_s": 1348.0, "duration_s": 6.0, "color": "#7570b3", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 26, "label": "walking", "start_s": 1348.0, "end_s": 1364.0, "duration_s": 16.0, "color": "#d95f02", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 27, "label": "standing", "start_s": 1364.0, "end_s": 1367.0, "duration_s": 3.0, "color": "#7570b3", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 28, "label": "walking", "start_s": 1367.0, "end_s": 1370.0, "duration_s": 3.0, "color": "#d95f02", "source": "continuous_v1", "start_boundary_source": "refined_0.5s_evidence", "start_boundary_confidence": "medium"}, {"segment_index": 29, "label": "downstairs", "start_s": 1370.0, "end_s": 1394.0, "duration_s": 24.0, "color": "#666666", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 30, "label": "walking", "start_s": 1394.0, "end_s": 1396.0, "duration_s": 2.0, "color": "#d95f02", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 31, "label": "standing", "start_s": 1396.0, "end_s": 1404.0, "duration_s": 8.0, "color": "#7570b3", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 32, "label": "walking", "start_s": 1404.0, "end_s": 1466.0, "duration_s": 62.0, "color": "#d95f02", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 33, "label": "standing", "start_s": 1466.0, "end_s": 1540.0, "duration_s": 74.0, "color": "#7570b3", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 34, "label": "walking", "start_s": 1540.0, "end_s": 1542.0, "duration_s": 2.0, "color": "#d95f02", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 35, "label": "standing", "start_s": 1542.0, "end_s": 1594.0, "duration_s": 52.0, "color": "#7570b3", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 36, "label": "walking", "start_s": 1594.0, "end_s": 1596.0, "duration_s": 2.0, "color": "#d95f02", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 37, "label": "standing", "start_s": 1596.0, "end_s": 1754.0, "duration_s": 158.0, "color": "#7570b3", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 38, "label": "walking", "start_s": 1754.0, "end_s": 1758.0, "duration_s": 4.0, "color": "#d95f02", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 39, "label": "standing", "start_s": 1758.0, "end_s": 1772.0, "duration_s": 14.0, "color": "#7570b3", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 40, "label": "walking", "start_s": 1772.0, "end_s": 1774.0, "duration_s": 2.0, "color": "#d95f02", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 41, "label": "standing", "start_s": 1774.0, "end_s": 1800.0, "duration_s": 26.0, "color": "#7570b3", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 42, "label": "walking", "start_s": 1800.0, "end_s": 1802.0, "duration_s": 2.0, "color": "#d95f02", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 43, "label": "standing", "start_s": 1802.0, "end_s": 1824.0, "duration_s": 22.0, "color": "#7570b3", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 44, "label": "walking", "start_s": 1824.0, "end_s": 1826.0, "duration_s": 2.0, "color": "#d95f02", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 45, "label": "standing", "start_s": 1826.0, "end_s": 1828.0, "duration_s": 2.0, "color": "#7570b3", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 46, "label": "walking", "start_s": 1828.0, "end_s": 1830.0, "duration_s": 2.0, "color": "#d95f02", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 47, "label": "standing", "start_s": 1830.0, "end_s": 1854.0, "duration_s": 24.0, "color": "#7570b3", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 48, "label": "walking", "start_s": 1854.0, "end_s": 1886.0, "duration_s": 32.0, "color": "#d95f02", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 49, "label": "standing", "start_s": 1886.0, "end_s": 1902.0, "duration_s": 16.0, "color": "#7570b3", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 50, "label": "walking", "start_s": 1902.0, "end_s": 1924.0, "duration_s": 22.0, "color": "#d95f02", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 51, "label": "standing", "start_s": 1924.0, "end_s": 1928.0, "duration_s": 4.0, "color": "#7570b3", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 52, "label": "walking", "start_s": 1928.0, "end_s": 1994.0, "duration_s": 66.0, "color": "#d95f02", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 53, "label": "standing", "start_s": 1994.0, "end_s": 1998.0, "duration_s": 4.0, "color": "#7570b3", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 54, "label": "walking", "start_s": 1998.0, "end_s": 2018.0, "duration_s": 20.0, "color": "#d95f02", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 55, "label": "standing", "start_s": 2018.0, "end_s": 2256.0, "duration_s": 238.0, "color": "#7570b3", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 56, "label": "walking", "start_s": 2256.0, "end_s": 2258.0, "duration_s": 2.0, "color": "#d95f02", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 57, "label": "standing", "start_s": 2258.0, "end_s": 2280.0, "duration_s": 22.0, "color": "#7570b3", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 58, "label": "walking", "start_s": 2280.0, "end_s": 2282.0, "duration_s": 2.0, "color": "#d95f02", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 59, "label": "standing", "start_s": 2282.0, "end_s": 2318.0, "duration_s": 36.0, "color": "#7570b3", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 60, "label": "sitting", "start_s": 2318.0, "end_s": 2320.0, "duration_s": 2.0, "color": "#e6ab02", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 61, "label": "standing", "start_s": 2320.0, "end_s": 2340.0, "duration_s": 20.0, "color": "#7570b3", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 62, "label": "walking", "start_s": 2340.0, "end_s": 2409.0, "duration_s": 69.0, "color": "#d95f02", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 63, "label": "downstairs", "start_s": 2409.0, "end_s": 2416.0, "duration_s": 7.0, "color": "#666666", "source": "continuous_v1", "start_boundary_source": "refined_0.5s_evidence", "start_boundary_confidence": "medium"}, {"segment_index": 64, "label": "walking", "start_s": 2416.0, "end_s": 2418.0, "duration_s": 2.0, "color": "#d95f02", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 65, "label": "downstairs", "start_s": 2418.0, "end_s": 2424.0, "duration_s": 6.0, "color": "#666666", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 66, "label": "sitting", "start_s": 2424.0, "end_s": 2426.0, "duration_s": 2.0, "color": "#e6ab02", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 67, "label": "walking", "start_s": 2426.0, "end_s": 2432.0, "duration_s": 6.0, "color": "#d95f02", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 68, "label": "downstairs", "start_s": 2432.0, "end_s": 2438.0, "duration_s": 6.0, "color": "#666666", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 69, "label": "walking", "start_s": 2438.0, "end_s": 2456.0, "duration_s": 18.0, "color": "#d95f02", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 70, "label": "standing", "start_s": 2456.0, "end_s": 2488.0, "duration_s": 32.0, "color": "#7570b3", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 71, "label": "walking", "start_s": 2488.0, "end_s": 2490.0, "duration_s": 2.0, "color": "#d95f02", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 72, "label": "standing", "start_s": 2490.0, "end_s": 2504.0, "duration_s": 14.0, "color": "#7570b3", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 73, "label": "sitting", "start_s": 2504.0, "end_s": 2512.0, "duration_s": 8.0, "color": "#e6ab02", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 74, "label": "standing", "start_s": 2512.0, "end_s": 2640.0, "duration_s": 128.0, "color": "#7570b3", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 75, "label": "sitting", "start_s": 2640.0, "end_s": 2646.0, "duration_s": 6.0, "color": "#e6ab02", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 76, "label": "standing", "start_s": 2646.0, "end_s": 2648.0, "duration_s": 2.0, "color": "#7570b3", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 77, "label": "walking", "start_s": 2648.0, "end_s": 2804.0, "duration_s": 156.0, "color": "#d95f02", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 78, "label": "sitting", "start_s": 2804.0, "end_s": 2912.0, "duration_s": 108.0, "color": "#e6ab02", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 79, "label": "upstairs", "start_s": 2912.0, "end_s": 2914.0, "duration_s": 2.0, "color": "#1b9e77", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 80, "label": "walking", "start_s": 2914.0, "end_s": 2928.0, "duration_s": 14.0, "color": "#d95f02", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 81, "label": "standing", "start_s": 2928.0, "end_s": 2968.0, "duration_s": 40.0, "color": "#7570b3", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 82, "label": "walking", "start_s": 2968.0, "end_s": 2988.0, "duration_s": 20.0, "color": "#d95f02", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 83, "label": "standing", "start_s": 2988.0, "end_s": 2990.0, "duration_s": 2.0, "color": "#7570b3", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 84, "label": "sitting", "start_s": 2990.0, "end_s": 3037.0, "duration_s": 47.0, "color": "#e6ab02", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 85, "label": "upstairs", "start_s": 3037.0, "end_s": 3039.0, "duration_s": 2.0, "color": "#1b9e77", "source": "continuous_v1", "start_boundary_source": "refined_0.5s_evidence", "start_boundary_confidence": "medium"}, {"segment_index": 86, "label": "walking", "start_s": 3039.0, "end_s": 3048.0, "duration_s": 9.0, "color": "#d95f02", "source": "continuous_v1", "start_boundary_source": "refined_0.5s_evidence", "start_boundary_confidence": "medium"}, {"segment_index": 87, "label": "upstairs", "start_s": 3048.0, "end_s": 3055.0, "duration_s": 7.0, "color": "#1b9e77", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 88, "label": "walking", "start_s": 3055.0, "end_s": 3059.0, "duration_s": 4.0, "color": "#d95f02", "source": "continuous_v1", "start_boundary_source": "refined_0.5s_evidence", "start_boundary_confidence": "medium"}, {"segment_index": 89, "label": "upstairs", "start_s": 3059.0, "end_s": 3072.0, "duration_s": 13.0, "color": "#1b9e77", "source": "continuous_v1", "start_boundary_source": "refined_0.5s_evidence", "start_boundary_confidence": "medium"}, {"segment_index": 90, "label": "walking", "start_s": 3072.0, "end_s": 3088.0, "duration_s": 16.0, "color": "#d95f02", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 91, "label": "downstairs", "start_s": 3088.0, "end_s": 3090.0, "duration_s": 2.0, "color": "#666666", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 92, "label": "upstairs", "start_s": 3090.0, "end_s": 3092.0, "duration_s": 2.0, "color": "#1b9e77", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 93, "label": "walking", "start_s": 3092.0, "end_s": 3130.0, "duration_s": 38.0, "color": "#d95f02", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 94, "label": "standing", "start_s": 3130.0, "end_s": 3132.0, "duration_s": 2.0, "color": "#7570b3", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 95, "label": "walking", "start_s": 3132.0, "end_s": 3136.0, "duration_s": 4.0, "color": "#d95f02", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 96, "label": "standing", "start_s": 3136.0, "end_s": 3154.0, "duration_s": 18.0, "color": "#7570b3", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 97, "label": "walking", "start_s": 3154.0, "end_s": 3158.0, "duration_s": 4.0, "color": "#d95f02", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 98, "label": "upstairs", "start_s": 3158.0, "end_s": 3168.0, "duration_s": 10.0, "color": "#1b9e77", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 99, "label": "walking", "start_s": 3168.0, "end_s": 3171.0, "duration_s": 3.0, "color": "#d95f02", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 100, "label": "upstairs", "start_s": 3171.0, "end_s": 3180.0, "duration_s": 9.0, "color": "#1b9e77", "source": "continuous_v1", "start_boundary_source": "refined_0.5s_evidence", "start_boundary_confidence": "medium"}, {"segment_index": 101, "label": "standing", "start_s": 3180.0, "end_s": 3185.0, "duration_s": 5.0, "color": "#7570b3", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 102, "label": "walking", "start_s": 3185.0, "end_s": 3196.0, "duration_s": 11.0, "color": "#d95f02", "source": "continuous_v1", "start_boundary_source": "refined_0.5s_evidence", "start_boundary_confidence": "medium"}, {"segment_index": 103, "label": "standing", "start_s": 3196.0, "end_s": 3209.0, "duration_s": 13.0, "color": "#7570b3", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 104, "label": "walking", "start_s": 3209.0, "end_s": 3238.0, "duration_s": 29.0, "color": "#d95f02", "source": "continuous_v1", "start_boundary_source": "refined_0.5s_evidence", "start_boundary_confidence": "medium"}, {"segment_index": 105, "label": "standing", "start_s": 3238.0, "end_s": 3240.0, "duration_s": 2.0, "color": "#7570b3", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 106, "label": "sitting", "start_s": 3240.0, "end_s": 3242.0, "duration_s": 2.0, "color": "#e6ab02", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 107, "label": "standing", "start_s": 3242.0, "end_s": 3266.0, "duration_s": 24.0, "color": "#7570b3", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 108, "label": "walking", "start_s": 3266.0, "end_s": 3278.0, "duration_s": 12.0, "color": "#d95f02", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 109, "label": "standing", "start_s": 3278.0, "end_s": 3282.0, "duration_s": 4.0, "color": "#7570b3", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 110, "label": "sitting", "start_s": 3282.0, "end_s": 3396.0, "duration_s": 114.0, "color": "#e6ab02", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 111, "label": "upstairs", "start_s": 3396.0, "end_s": 3398.0, "duration_s": 2.0, "color": "#1b9e77", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}, {"segment_index": 112, "label": "standing", "start_s": 3398.0, "end_s": 3400.0, "duration_s": 2.0, "color": "#7570b3", "source": "continuous_v1", "start_boundary_source": "retained_v4_boundary", "start_boundary_confidence": "retained"}], "model_prediction_title": "Continuous Prediction", "model_prediction_note": "variable periods; 0.5s boundary evidence", "initial_manual_segments": [{"id": "manual_1784137197708_0_a372aba0ee1a98", "start_s": 0.0, "end_s": 35.885, "motion_label": "sitting", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:39:57.708Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137229375_0_f687aebbb9b548", "start_s": 35.885, "end_s": 89.302, "motion_label": "sitting", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:40:29.375Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137244612_0_a390aad1c0181", "start_s": 89.302, "end_s": 106.688, "motion_label": "sitting", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:40:44.612Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137249009_0_0aec637b0d2778", "start_s": 106.688, "end_s": 131.896, "motion_label": "sitting", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:40:49.009Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137252154_0_e07bc132fb93a8", "start_s": 131.896, "end_s": 178.009, "motion_label": "sitting", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:40:52.154Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137259336_0_1b0a301635f2d", "start_s": 178.009, "end_s": 217.86, "motion_label": "sitting", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:40:59.336Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137262904_0_d3010a4514d91", "start_s": 217.86, "end_s": 252.461, "motion_label": "sitting", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:41:02.904Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137268387_0_52e21199d21fb", "start_s": 252.461, "end_s": 268.934, "motion_label": "sitting", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:41:08.387Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784139529095_0_c668b3f64303f", "start_s": 268.934, "end_s": 298.221, "motion_label": "sitting", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T18:18:49.095Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137277479_0_855f7bbb0612", "start_s": 298.221, "end_s": 342.066, "motion_label": "sitting", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:41:17.479Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137284686_0_4433531f9724f", "start_s": 342.066, "end_s": 357.259, "motion_label": "sitting", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:41:24.686Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137292478_0_61469ef0f6c0a8", "start_s": 357.259, "end_s": 380.666, "motion_label": "sitting", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:41:32.478Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137193001_0_de7324a2efe39", "start_s": 380.666, "end_s": 470.623, "motion_label": "sitting", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:39:53.001Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137303627_0_8ce723554b104", "start_s": 470.623, "end_s": 472.157, "motion_label": "sitting", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:41:43.627Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137311952_0_9323e81a829a1", "start_s": 472.157, "end_s": 476.841, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:41:51.952Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137320269_0_94ce3c1aea0e", "start_s": 476.841, "end_s": 480.719, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:42:00.269Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137324544_0_f26d4143f6fa", "start_s": 480.719, "end_s": 482.079, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:42:04.544Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137332786_0_6b10120eec284", "start_s": 482.079, "end_s": 484.812, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:42:12.786Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137338303_0_fe873face05a18", "start_s": 484.812, "end_s": 488.836, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:42:18.303Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137351552_0_8af13796541978", "start_s": 488.836, "end_s": 501.375, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:42:31.552Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137390568_0_5dda00868b5d28", "start_s": 501.375, "end_s": 502.563, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:43:10.568Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137404585_0_0b92b4e1a569c", "start_s": 502.563, "end_s": 518.989, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:43:24.585Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137408318_0_72160e6aafc088", "start_s": 518.989, "end_s": 520.864, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:43:28.318Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137414460_0_d168e01599d238", "start_s": 520.864, "end_s": 526.022, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:43:34.460Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137433093_0_c8aab4ecfb0c1", "start_s": 526.022, "end_s": 536.097, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:43:53.093Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137484876_0_fc1ecd9559fa4", "start_s": 536.097, "end_s": 537.445, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:44:44.876Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137489259_0_bcf23f34d03778", "start_s": 537.445, "end_s": 540.377, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:44:49.259Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137499784_0_ec42841f28cfa", "start_s": 540.377, "end_s": 551.627, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:44:59.784Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137618777_0_d5683a7e6c7f8", "start_s": 551.627, "end_s": 578.042, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:46:58.777Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137629094_0_f0c0f24d5388e8", "start_s": 578.042, "end_s": 590.256, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:47:09.094Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137634135_0_dca07e9179d7a", "start_s": 590.256, "end_s": 594.046, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:47:14.135Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137638569_0_8cf5b6d35cd68", "start_s": 594.046, "end_s": 596.509, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:47:18.569Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137644335_0_e995ed81282478", "start_s": 596.509, "end_s": 599.641, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:47:24.335Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137654456_0_c651b97208db28", "start_s": 599.641, "end_s": 603.933, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:47:34.456Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137664081_0_a5c7ca165cc84", "start_s": 603.933, "end_s": 644.059, "motion_label": "sitting", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:47:44.081Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137667177_0_a271a7c07df46", "start_s": 644.059, "end_s": 674.009, "motion_label": "sitting", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:47:47.177Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137726382_0_c0e3f4d817c8e", "start_s": 674.009, "end_s": 706.004, "motion_label": "sitting", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:48:46.382Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137730064_0_ea2a7ad93d015", "start_s": 706.004, "end_s": 756.758, "motion_label": "sitting", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:48:50.064Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137735056_0_cd523451e35028", "start_s": 756.758, "end_s": 788.85, "motion_label": "sitting", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:48:55.056Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137738381_0_3e867ccd9acaa", "start_s": 788.85, "end_s": 833.782, "motion_label": "sitting", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:48:58.381Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137743439_0_c62e3ca4ddf03", "start_s": 833.782, "end_s": 867.66, "motion_label": "sitting", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:49:03.439Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137796347_0_2e76269e1ba4c", "start_s": 867.66, "end_s": 883.467, "motion_label": "sitting", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:49:56.347Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137799181_0_35d8dc306e67f", "start_s": 883.467, "end_s": 933.276, "motion_label": "sitting", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:49:59.181Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137802464_0_cc54d810d21538", "start_s": 933.276, "end_s": 983.104, "motion_label": "sitting", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:50:02.464Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137808414_0_fd1ec646445cf", "start_s": 983.104, "end_s": 1013.938, "motion_label": "sitting", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:50:08.414Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137915838_0_2a22eee0978a78", "start_s": 1013.938, "end_s": 1055.492, "motion_label": "sitting", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:51:55.838Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137919296_0_ce25a8eb290838", "start_s": 1055.492, "end_s": 1092.55, "motion_label": "sitting", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:51:59.296Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137922672_0_3446b25a0e6208", "start_s": 1092.55, "end_s": 1137.576, "motion_label": "sitting", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:52:02.672Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137927688_0_f0ad7700dc4da", "start_s": 1137.576, "end_s": 1173.598, "motion_label": "sitting", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:52:07.688Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137933813_0_6f5b96bdade8d8", "start_s": 1173.598, "end_s": 1200.142, "motion_label": "sitting", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:52:13.813Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137947055_0_ff402eaaac9c78", "start_s": 1200.142, "end_s": 1227.364, "motion_label": "sitting", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:52:27.055Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137958438_0_2f0d2cb52715d8", "start_s": 1227.364, "end_s": 1235.036, "motion_label": "sitting", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:52:38.438Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137965096_0_7a5f373e1c9248", "start_s": 1235.036, "end_s": 1238.493, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:52:45.096Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137971096_0_04055a85ca8708", "start_s": 1238.493, "end_s": 1241.756, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:52:51.096Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137976122_0_f2afbef6847f88", "start_s": 1241.756, "end_s": 1243.956, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:52:56.122Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784137987034_0_ae8576b9fc896", "start_s": 1243.956, "end_s": 1245.293, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:53:07.034Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784138003434_0_4497aa75b9068", "start_s": 1245.293, "end_s": 1259.169, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:53:23.434Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784138071860_0_fc0797229fe8f", "start_s": 1259.169, "end_s": 1259.911, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:54:31.860Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784138178718_0_efe1d5d3d96588", "start_s": 1259.911, "end_s": 1273.911, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:56:18.718Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784138189644_0_a2c9d0a23fa008", "start_s": 1273.911, "end_s": 1280.372, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:56:29.644Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784138258701_0_c4d320dee41b6", "start_s": 1280.372, "end_s": 1331.756, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:57:38.701Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784138331600_0_d22918d22a6718", "start_s": 1331.756, "end_s": 1333.265, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:58:51.600Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784138335505_0_8d022f4a320688", "start_s": 1333.265, "end_s": 1334.316, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:58:55.505Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784138342963_0_43c63106f4108", "start_s": 1334.316, "end_s": 1338.588, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:59:02.963Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784138350816_0_939cce19e45728", "start_s": 1338.588, "end_s": 1341.922, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:59:10.816Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784138359249_0_d354b49fafdf18", "start_s": 1341.922, "end_s": 1347.897, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-15T17:59:19.249Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784740520399_0_4a0535cfd08d", "start_s": 1347.897, "end_s": 1364.281, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-22T17:15:20.399Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784740536472_0_ef0d66d6ff439", "start_s": 1364.281, "end_s": 1367.157, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-22T17:15:36.472Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784741218878_0_0d3106aa7d288", "start_s": 1367.157, "end_s": 1371.131, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-22T17:26:58.878Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784741228860_0_caa221cc5aae", "start_s": 1371.131, "end_s": 1377.734, "motion_label": "downstairs", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-22T17:27:08.860Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784741234176_0_f32e9cb1ffa0d8", "start_s": 1377.734, "end_s": 1380.052, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-22T17:27:14.176Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784741249676_0_4c025855461818", "start_s": 1380.052, "end_s": 1385.526, "motion_label": "downstairs", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-22T17:27:29.676Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784741281485_0_afd399403092c", "start_s": 1385.526, "end_s": 1388.44, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-22T17:28:01.485Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784741289235_0_992c21868bd2", "start_s": 1388.44, "end_s": 1394.005, "motion_label": "downstairs", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-22T17:28:09.235Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784741294693_0_8970d7007dd5e8", "start_s": 1394.005, "end_s": 1396.568, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-22T17:28:14.693Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784741345126_0_310a7e3ce9f81", "start_s": 1396.568, "end_s": 1404.417, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-22T17:29:05.126Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784741560121_0_275896ed4b38e8", "start_s": 1404.417, "end_s": 1418.639, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-22T17:32:40.121Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784741587675_0_14c326100cf718", "start_s": 1418.639, "end_s": 1450.958, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-22T17:33:07.675Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784741618083_0_6454aae6c6a528", "start_s": 1450.958, "end_s": 1460.145, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-22T17:33:38.083Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784741622328_0_5799f8ff6ed3f", "start_s": 1460.145, "end_s": 1461.357, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-22T17:33:42.328Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784741631332_0_bfde23fab04ec8", "start_s": 1461.357, "end_s": 1467.516, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-22T17:33:51.332Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784741644141_0_d518f213f31258", "start_s": 1467.516, "end_s": 1499.198, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-22T17:34:04.141Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784741691541_0_99affb154f0e58", "start_s": 1499.198, "end_s": 1539.761, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-22T17:34:51.541Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784741773985_0_ae9d7fc03b8308", "start_s": 1539.761, "end_s": 1541.621, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-22T17:36:13.985Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784741884691_0_a914d784ad91d8", "start_s": 1541.621, "end_s": 1608.673, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-22T17:38:04.691Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784741889030_0_da460c157ba658", "start_s": 1608.673, "end_s": 1644.605, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-22T17:38:09.030Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784741942182_0_ebe6f0baf5603", "start_s": 1644.605, "end_s": 1696.573, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-22T17:39:02.182Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784742014523_0_2e6e334089f23", "start_s": 1696.573, "end_s": 1706.586, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-22T17:40:14.523Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784742114568_0_a8053d2a6436a", "start_s": 1706.586, "end_s": 1722.379, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-22T17:41:54.568Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784742127187_0_1d1d42b92a1d4", "start_s": 1722.379, "end_s": 1727.474, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-22T17:42:07.187Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784742123274_0_07991ad9b29a3", "start_s": 1727.474, "end_s": 1799.746, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-22T17:42:03.274Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784742130827_0_6add51f523cbd8", "start_s": 1799.746, "end_s": 1849.468, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-22T17:42:10.827Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784742626270_0_ea55436595a59", "start_s": 1849.468, "end_s": 1850.743, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-22T17:50:26.270Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784742635148_0_810a13c88a95d8", "start_s": 1850.743, "end_s": 1853.545, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-22T17:50:35.148Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784742652239_0_e1fddf1fdafe18", "start_s": 1853.545, "end_s": 1886.804, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-22T17:50:52.239Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784742669614_0_b8b6296c5a276", "start_s": 1886.804, "end_s": 1902.643, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-22T17:51:09.614Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784742696921_0_465d9438e06588", "start_s": 1902.643, "end_s": 1925.065, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-22T17:51:36.921Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784742923737_0_43ba205386afa", "start_s": 1925.065, "end_s": 1954.967, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-22T17:55:23.737Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784742930367_0_596c4e959327e", "start_s": 1954.967, "end_s": 1985.176, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-22T17:55:30.367Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784742960503_0_2ce6d03594eb3", "start_s": 1985.176, "end_s": 1995.625, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-22T17:56:00.503Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784742969515_0_ea6db22e8dad68", "start_s": 1995.625, "end_s": 1998.428, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-22T17:56:09.515Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784743019377_0_d966a42bc4b81", "start_s": 1998.428, "end_s": 2017.679, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-22T17:56:59.377Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784743023432_0_d69fa4e64ed118", "start_s": 2017.679, "end_s": 2019.422, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-22T17:57:03.432Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784743064090_0_f3172a9f528748", "start_s": 2019.422, "end_s": 2050.534, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-22T17:57:44.090Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1784743265890_0_bf9ff26a7405a8", "start_s": 2050.534, "end_s": 2092.176, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-22T18:01:05.890Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785339627699_0_e8be14e3986b", "start_s": 2092.176, "end_s": 2111.873, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:40:27.699Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785339647927_0_a58dae5e1ce9b8", "start_s": 2111.873, "end_s": 2167.474, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:40:47.927Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785339740740_0_280968718b8e", "start_s": 2167.474, "end_s": 2175.967, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:42:20.740Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785339743851_0_9d01f7d91129e8", "start_s": 2175.967, "end_s": 2181.144, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:42:23.851Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785339694481_0_576a64c114eaf", "start_s": 2181.144, "end_s": 2255.704, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:41:34.481Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785339701581_0_10a1a21e15fcf", "start_s": 2255.704, "end_s": 2258.677, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:41:41.581Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785339711744_0_19a8927f787ab8", "start_s": 2258.677, "end_s": 2279.93, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:41:51.744Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785339722322_0_17f9ea02d95c6", "start_s": 2279.93, "end_s": 2281.407, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:42:02.322Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785339732734_0_3e909059092c7", "start_s": 2281.407, "end_s": 2284.58, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:42:12.734Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785339817308_0_2a2e50e234c9", "start_s": 2284.58, "end_s": 2339.958, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:43:37.308Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785339864187_0_bca50cd557da08", "start_s": 2339.958, "end_s": 2406.302, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:44:24.187Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785339870070_0_21900de568815", "start_s": 2406.302, "end_s": 2410.166, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:44:30.070Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785339880028_0_b83ef563343328", "start_s": 2410.166, "end_s": 2416.665, "motion_label": "downstairs", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:44:40.028Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785339885482_0_937b3ed99db8c", "start_s": 2416.665, "end_s": 2419.12, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:44:45.482Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785339897728_0_8aa62cb013384", "start_s": 2419.12, "end_s": 2428.872, "motion_label": "downstairs", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:44:57.728Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785339903953_0_62dbe43c035f2", "start_s": 2428.872, "end_s": 2433.235, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:45:03.953Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785339912008_0_803c28ca064578", "start_s": 2433.235, "end_s": 2438.514, "motion_label": "downstairs", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:45:12.008Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785339931444_0_ff5dd59c95575", "start_s": 2438.514, "end_s": 2458.273, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:45:31.444Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785339953981_0_1c1e817f6c43a", "start_s": 2458.273, "end_s": 2471.665, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:45:53.981Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785339958635_0_2e74eeab584c3", "start_s": 2471.665, "end_s": 2474.212, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:45:58.635Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785339972008_0_52b8a0d493e44", "start_s": 2474.212, "end_s": 2488.165, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:46:12.008Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785339976264_0_9217a4849e9ef8", "start_s": 2488.165, "end_s": 2490.17, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:46:16.264Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785340000918_0_6acbbc28173998", "start_s": 2490.17, "end_s": 2491.665, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:46:40.918Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785340013609_0_36fad596ade088", "start_s": 2491.665, "end_s": 2494.402, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:46:53.609Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785340071583_0_1096dee1f08b1", "start_s": 2494.402, "end_s": 2525.161, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:47:51.583Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785340076058_0_81d210add6036", "start_s": 2525.161, "end_s": 2526.865, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:47:56.058Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785340088004_0_fbf6b683af419", "start_s": 2526.865, "end_s": 2530.141, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:48:08.004Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785340091687_0_2389ba4140b9f8", "start_s": 2530.141, "end_s": 2531.176, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:48:11.687Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785340141026_0_e9cac586fe71", "start_s": 2531.176, "end_s": 2589.368, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:49:01.026Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785340185165_0_e6a1be0df99ba", "start_s": 2589.368, "end_s": 2636.611, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:49:45.165Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785340192891_0_b25eb90374e6c", "start_s": 2636.611, "end_s": 2638.894, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:49:52.891Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785340202369_0_c4c83764ec9e98", "start_s": 2638.894, "end_s": 2643.057, "motion_label": "sitting", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:50:02.369Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785340208669_0_991f63da317d38", "start_s": 2643.057, "end_s": 2646.526, "motion_label": "sitting", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:50:08.669Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785340261839_0_63e2a0819d5ef8", "start_s": 2646.526, "end_s": 2647.552, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:51:01.839Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785340350109_0_9fea5b58660cc", "start_s": 2647.552, "end_s": 2650.76, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:52:30.109Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785340379700_0_7cee79c15767e", "start_s": 2650.76, "end_s": 2688.952, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:52:59.700Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785340383233_0_2938ecc8db9c08", "start_s": 2688.952, "end_s": 2736.678, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:53:03.233Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785340388600_0_4e2e74bd6dd678", "start_s": 2736.678, "end_s": 2801.751, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:53:08.600Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785340426530_0_008b790fedc038", "start_s": 2801.751, "end_s": 2804.851, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:53:46.530Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785340431614_0_5385aacc9804f8", "start_s": 2804.851, "end_s": 2805.744, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:53:51.614Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785340440139_0_daf3158dc3469", "start_s": 2805.744, "end_s": 2825.762, "motion_label": "sitting", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:54:00.139Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785340444098_0_e12169e576781", "start_s": 2825.762, "end_s": 2864.317, "motion_label": "sitting", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:54:04.098Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785340447779_0_bd0f62a330a6f", "start_s": 2864.317, "end_s": 2911.64, "motion_label": "sitting", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:54:07.779Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785340475732_0_0441b16a0229c8", "start_s": 2911.64, "end_s": 2913.172, "motion_label": "sitting", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:54:35.732Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785340480815_0_dce5ec405fa89", "start_s": 2913.172, "end_s": 2915.537, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:54:40.815Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785340510898_0_9da7064addfde8", "start_s": 2915.537, "end_s": 2930.12, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:55:10.898Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785340546057_0_e0d1301b17999", "start_s": 2930.12, "end_s": 2968.509, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:55:46.057Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785340570706_0_5d9d6c5ad06a1", "start_s": 2968.509, "end_s": 2988.513, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:56:10.706Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785340577747_0_6b4b7dd0a90af", "start_s": 2988.513, "end_s": 2991.988, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:56:17.747Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785340603380_0_a8d2292804353", "start_s": 2991.988, "end_s": 3037.928, "motion_label": "sitting", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:56:43.380Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785340613997_0_38eccce2cc0bd8", "start_s": 3037.928, "end_s": 3039.94, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:56:53.997Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785340635722_0_1c1f3bd33c32b", "start_s": 3039.94, "end_s": 3040.735, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:57:15.722Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785340647172_0_320c50262b2a78", "start_s": 3040.735, "end_s": 3049.925, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:57:27.172Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785340655580_0_bc8b4d59e36778", "start_s": 3049.925, "end_s": 3055.498, "motion_label": "upstairs", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:57:35.580Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785340664947_0_75986470b3b3c", "start_s": 3055.498, "end_s": 3060.687, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:57:44.947Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785340682380_0_dc0a241df9d798", "start_s": 3060.687, "end_s": 3072.162, "motion_label": "upstairs", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:58:02.380Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785340701355_0_2e13de5e56a408", "start_s": 3072.162, "end_s": 3087.669, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:58:21.355Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785340713204_0_630cb010967a4", "start_s": 3087.669, "end_s": 3089.6, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:58:33.204Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785340718904_0_45c4348e6716e", "start_s": 3089.6, "end_s": 3091.701, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:58:38.904Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785340750362_0_db742628fe0a", "start_s": 3091.701, "end_s": 3092.573, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T15:59:10.362Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785341145868_0_5ce4c484c9034", "start_s": 3092.573, "end_s": 3131.892, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T16:05:45.868Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785341152000_0_15f9c57fd3bb6", "start_s": 3131.892, "end_s": 3134.588, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T16:05:52.000Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785341160718_0_fab964d75b9ad8", "start_s": 3134.588, "end_s": 3139.08, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T16:06:00.718Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785341176942_0_24c9c14aa0243", "start_s": 3139.08, "end_s": 3153.888, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T16:06:16.942Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785341185350_0_9dbe5d3e094df8", "start_s": 3153.888, "end_s": 3156.842, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T16:06:25.350Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785341281449_0_13246511406a3", "start_s": 3156.842, "end_s": 3159.222, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T16:08:01.449Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785341292657_0_0e6a5e6505c5f8", "start_s": 3159.222, "end_s": 3168.654, "motion_label": "upstairs", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T16:08:12.657Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785341306641_0_9366067deae4f8", "start_s": 3168.654, "end_s": 3172.254, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T16:08:26.641Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785341317066_0_397082169d4d8", "start_s": 3172.254, "end_s": 3180.515, "motion_label": "upstairs", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T16:08:37.066Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785341326840_0_e3140949894d2", "start_s": 3180.515, "end_s": 3182.177, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T16:08:46.840Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785341336674_0_97f52212d003d8", "start_s": 3182.177, "end_s": 3186.793, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T16:08:56.674Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785341367907_0_60265763579208", "start_s": 3186.793, "end_s": 3196.672, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T16:09:27.907Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785341476944_0_be9941fe898338", "start_s": 3196.672, "end_s": 3210.554, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T16:11:16.944Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785341486843_0_afd6b8fce5b3e8", "start_s": 3210.554, "end_s": 3218.034, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T16:11:26.843Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785341493496_0_f27a5848e4a9c8", "start_s": 3218.034, "end_s": 3220.462, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T16:11:33.496Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785341654592_0_a646951f924f48", "start_s": 3220.462, "end_s": 3239.028, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T16:14:14.592Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785341662683_0_e0e078f6fc35d8", "start_s": 3239.028, "end_s": 3241.231, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T16:14:22.683Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785341667567_0_6a52c69c5e3158", "start_s": 3241.231, "end_s": 3243.158, "motion_label": "sitting", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T16:14:27.567Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785341672725_0_0df0227627d438", "start_s": 3243.158, "end_s": 3245.464, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T16:14:32.725Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785341694783_0_714e11819bede8", "start_s": 3245.464, "end_s": 3258.842, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T16:14:54.783Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785341706216_0_8c69b69b61d098", "start_s": 3258.842, "end_s": 3260.531, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T16:15:06.216Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785341711649_0_5b2994c4af8d18", "start_s": 3260.531, "end_s": 3263.482, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T16:15:11.649Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785341721333_0_c062c81cfa3a2", "start_s": 3263.482, "end_s": 3264.499, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T16:15:21.333Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785341730108_0_7fd12a12858458", "start_s": 3264.499, "end_s": 3267.467, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T16:15:30.108Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785341738024_0_afd363def31b4", "start_s": 3267.467, "end_s": 3273.393, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T16:15:38.024Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785341745033_0_473cbfec3aaa28", "start_s": 3273.393, "end_s": 3279.027, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T16:15:45.033Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785341772724_0_25f7bdfac53bc", "start_s": 3279.027, "end_s": 3279.35, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T16:16:12.724Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785341777449_0_b4dd60b8daba4", "start_s": 3279.35, "end_s": 3281.169, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T16:16:17.449Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785341782099_0_9c07dd69b6b0f8", "start_s": 3281.169, "end_s": 3282.31, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T16:16:22.099Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785341788557_0_42bd7f1fd70a58", "start_s": 3282.31, "end_s": 3283.71, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T16:16:28.557Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785341802165_0_7bde94c6c06ae", "start_s": 3283.71, "end_s": 3317.954, "motion_label": "sitting", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T16:16:42.165Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785341806437_0_a8f433e1a7f0d", "start_s": 3317.954, "end_s": 3366.5, "motion_label": "sitting", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T16:16:46.437Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785341854348_0_57b61b054f45d", "start_s": 3366.5, "end_s": 3398.018, "motion_label": "sitting", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T16:17:34.348Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785341860857_0_fdcdca7ce07988", "start_s": 3398.018, "end_s": 3399.543, "motion_label": "standing", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T16:17:40.857Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}, {"id": "manual_1785341865915_0_26b3bfbfd49188", "start_s": 3399.543, "end_s": 3400.0, "motion_label": "walking", "confidence": "medium", "note": "", "source": "manual_session", "created_at": "2026-07-29T16:17:45.915Z", "updated_at": "2026-07-29T16:17:46.765005+00:00"}], "time_spent_records": [{"label": "sitting", "normalized_label": "sitting", "seconds": 1394.0, "minutes": 23.233333333333334, "color": "#e6ab02"}, {"label": "standing", "normalized_label": "standing", "seconds": 1084.0, "minutes": 18.066666666666666, "color": "#7570b3"}, {"label": "walking", "normalized_label": "walking", "seconds": 828.0, "minutes": 13.8, "color": "#d95f02"}, {"label": "upstairs", "normalized_label": "upstairs", "seconds": 48.0, "minutes": 0.8, "color": "#1b9e77"}, {"label": "downstairs", "normalized_label": "downstairs", "seconds": 46.0, "minutes": 0.7666666666666667, "color": "#666666"}], "trial_selector_href": "../index.html", "full_review_href": "index.html", "stride_review_href": "pd_insighter_stride_review.html", "transition_review_href": "pd_insighter_transition_review.html", "trial_jump_options": [{"trial_id": "__selector__", "label": "Demo Home", "href": "../index.html"}, {"trial_id": "Half_hour", "label": "Half_hour - long normal trial", "href": "../Half_hour/pd_insighter_manual_labeling.html"}, {"trial_id": "60minutes_1", "label": "60minutes_1 - extended normal trial", "href": "pd_insighter_manual_labeling.html"}, {"trial_id": "Ntrial3", "label": "Ntrial3 - short indoor trial", "href": "../Ntrial3/pd_insighter_manual_labeling.html"}]};
+    const colors = {
+      sitting: "#e6ab02",
+      standing: "#7570b3",
+      walking: "#d95f02",
+      upstairs: "#1b9e77",
+      downstairs: "#666666",
+      missing: "#b6bec6"
+    };
+    const actions = ["sitting", "standing", "walking", "upstairs", "downstairs"];
+    const trialId = data.trial_id;
+    const duration = Number(data.session_duration_s || 0);
+    const downwardDuration = Number(data.downward_session_duration_s || duration);
+    const modelSegments = (data.model_segments || []).map(seg => ({
+      ...seg,
+      start_s: Number(seg.start_s),
+      end_s: Number(seg.end_s),
+      label: String(seg.label || "")
+    })).filter(seg => Number.isFinite(seg.start_s) && Number.isFinite(seg.end_s));
+
+    const downwardVideo = document.getElementById("downwardVideo");
+    const ariaVideo = document.getElementById("ariaVideo");
+    const scrubber = document.getElementById("scrubber");
+    const playBtn = document.getElementById("playBtn");
+    const pauseBtn = document.getElementById("pauseBtn");
+    const overviewTimeline = document.getElementById("overviewTimeline");
+    const modelTimeline = document.getElementById("modelTimeline");
+    const manualTimeline = document.getElementById("manualTimeline");
+    const timelineWindowSelect = document.getElementById("timelineWindowSelect");
+    const timelineWindowStatus = document.getElementById("timelineWindowStatus");
+    const followWindowCheckbox = document.getElementById("followWindowCheckbox");
+    const usePlayheadDragStartCheckbox = document.getElementById("usePlayheadDragStartCheckbox");
+    const labelSelect = document.getElementById("labelSelect");
+    const confidenceSelect = document.getElementById("confidenceSelect");
+    const saveStatus = document.getElementById("saveStatus");
+    const syncStatus = document.getElementById("syncStatus");
+    const pendingPanel = document.getElementById("pendingPanel");
+    const pendingRangeText = document.getElementById("pendingRangeText");
+    const pendingRangeHint = document.getElementById("pendingRangeHint");
+    const pendingActionButtons = document.getElementById("pendingActionButtons");
+    const segmentSelect = document.getElementById("segmentSelect");
+    const segmentLabelSelect = document.getElementById("segmentLabelSelect");
+    const segmentConfidenceSelect = document.getElementById("segmentConfidenceSelect");
+    const startInput = document.getElementById("startInput");
+    const endInput = document.getElementById("endInput");
+    const noteInput = document.getElementById("noteInput");
+    const editorStatus = document.getElementById("editorStatus");
+    const segmentList = document.getElementById("segmentList");
+
+    let manualSegments = [];
+    let selectedId = "";
+    let quickStartS = null;
+    let dragStartS = null;
+    let dragStartClientX = 0;
+    let dragPointerId = null;
+    let dragStartedOnSegmentId = "";
+    let dragHasMoved = false;
+    let dragPreviewEls = [];
+    let pendingSelection = null;
+    let suppressTimelineClickUntil = 0;
+    let saveTimer = null;
+    let downwardTurns = 2;
+    let ariaTurns = 1;
+    let viewStartS = 0;
+    let viewEndS = duration;
+    let syncAnimationId = null;
+    let lastSyncStatusUpdateMs = 0;
+    const MIN_DRAG_LABEL_S = 0.1;
+    const DRAG_PIXEL_THRESHOLD = 4;
+    const SNAP_BOUNDARY_S = 0.25;
+    const SOFT_SYNC_THRESHOLD_S = 0.025;
+    const HARD_SYNC_THRESHOLD_S = 0.12;
+
+    function clamp(value, min, max) {
+      return Math.min(Math.max(Number(value) || 0, min), max);
+    }
+    function fmt(seconds) {
+      const s = Math.max(0, Number(seconds) || 0);
+      const m = Math.floor(s / 60);
+      const rest = s - m * 60;
+      return m > 0 ? `${m}:${rest.toFixed(1).padStart(4, "0")}` : `${rest.toFixed(1)}s`;
+    }
+    function viewDuration() {
+      return Math.max(0.001, viewEndS - viewStartS);
+    }
+    function timelineWindowSize() {
+      const value = timelineWindowSelect.value;
+      return value === "full" ? duration : Math.min(duration, Number(value) || duration);
+    }
+    function pctFull(start, end) {
+      const left = duration > 0 ? (start / duration) * 100 : 0;
+      const width = duration > 0 ? ((end - start) / duration) * 100 : 0;
+      return { left: `${left}%`, width: `${Math.max(0, width)}%` };
+    }
+    function pct(start, end) {
+      const clippedStart = Math.max(start, viewStartS);
+      const clippedEnd = Math.min(end, viewEndS);
+      if (clippedEnd <= clippedStart) return null;
+      const left = ((clippedStart - viewStartS) / viewDuration()) * 100;
+      const width = ((clippedEnd - clippedStart) / viewDuration()) * 100;
+      return { left: `${left}%`, width: `${Math.max(0, width)}%` };
+    }
+    function setTimelineWindow(centerS, sizeS = timelineWindowSize(), rerender = true) {
+      const size = Math.min(duration, Math.max(1, Number(sizeS) || duration));
+      if (size >= duration - 0.001) {
+        viewStartS = 0;
+        viewEndS = duration;
+      } else {
+        const center = clamp(centerS, 0, duration);
+        viewStartS = clamp(center - size / 2, 0, Math.max(0, duration - size));
+        viewEndS = Math.min(duration, viewStartS + size);
+      }
+      updateTimelineWindowStatus();
+      if (rerender) renderAll();
+    }
+    function panTimelineWindow(direction) {
+      const shift = viewDuration() * 0.8 * direction;
+      setTimelineWindow((viewStartS + viewEndS) / 2 + shift, viewDuration(), true);
+    }
+    function ensureTimeInWindow(timeS, rerender = true) {
+      if (timelineWindowSelect.value === "full") return;
+      const margin = viewDuration() * 0.18;
+      if (timeS < viewStartS + margin || timeS > viewEndS - margin) {
+        setTimelineWindow(timeS, viewDuration(), rerender);
+      }
+    }
+    function updateTimelineWindowStatus() {
+      timelineWindowStatus.textContent = `Showing ${fmt(viewStartS)} - ${fmt(viewEndS)} (${fmt(viewDuration())})`;
+    }
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+    }
+    function normalizeAction(label) {
+      const raw = String(label || "").trim().toLowerCase().replaceAll("_", "-");
+      if (raw === "sit") return "sitting";
+      if (raw === "stand") return "standing";
+      if (raw === "walk") return "walking";
+      if (raw === "go upstairs") return "upstairs";
+      if (raw === "go downstairs") return "downstairs";
+      return raw;
+    }
+    function modelActions(label) {
+      const raw = String(label || "").toLowerCase().replaceAll("_", "-");
+      const found = [];
+      for (const action of actions) {
+        const stem = action === "sitting" ? "sit" : action === "standing" ? "stand" : action === "walking" ? "walk" : action;
+        if (raw.includes(action) || raw.includes(stem)) found.push(action);
+      }
+      const single = normalizeAction(raw);
+      if (!found.length && actions.includes(single)) found.push(single);
+      return [...new Set(found)];
+    }
+    function segmentAtTime(segments, timeS) {
+      return segments.find(seg => timeS >= seg.start_s && timeS < seg.end_s) || null;
+    }
+    function seek(timeS, play = false) {
+      const target = clamp(timeS, 0, duration);
+      downwardVideo.currentTime = clamp(target, 0, Math.max(0, downwardDuration - 0.05));
+      ariaVideo.currentTime = target;
+      syncFollower(true);
+      if (followWindowCheckbox.checked) ensureTimeInWindow(target, true);
+      if (play) playBoth();
+      renderPlayheads(target);
+      renderMetrics();
+    }
+    async function playBoth() {
+      syncFollower(true);
+      try {
+        const playPromises = [ariaVideo.play()];
+        if ((ariaVideo.currentTime || 0) <= Math.max(0, downwardDuration - 0.05)) {
+          playPromises.push(downwardVideo.play());
+        }
+        const results = await Promise.allSettled(playPromises);
+        if (results[0]?.status === "rejected") throw results[0].reason;
+        syncFollower(true);
+        startSyncLoop();
+        if (saveStatus.textContent.startsWith("Playback blocked")) {
+          saveStatus.textContent = "Playback ready.";
+        }
+      } catch (error) {
+        pauseBoth();
+        saveStatus.textContent = "Playback blocked: click Play or the video once, then Space should work.";
+      }
+    }
+    function pauseBoth() {
+      ariaVideo.pause();
+      downwardVideo.pause();
+      stopSyncLoop();
+    }
+    function togglePlayback() {
+      if (!ariaVideo.paused || !downwardVideo.paused) {
+        pauseBoth();
+      } else {
+        playBoth();
+      }
+    }
+    function syncFollower(force = false) {
+      const target = clamp(ariaVideo.currentTime, 0, duration);
+      const downwardMaxTime = Math.max(0, downwardDuration - 0.05);
+      if (target > downwardMaxTime) {
+        downwardVideo.pause();
+        downwardVideo.playbackRate = ariaVideo.playbackRate || 1;
+        updateSyncStatus(0, "ended");
+        return;
+      }
+      const delta = Number(downwardVideo.currentTime || 0) - target;
+      const absDelta = Math.abs(delta);
+      const baseRate = Number(ariaVideo.playbackRate || 1);
+      if (force || !Number.isFinite(delta) || absDelta > HARD_SYNC_THRESHOLD_S) {
+        try {
+          downwardVideo.currentTime = clamp(target, 0, downwardMaxTime);
+        } catch (error) {}
+        downwardVideo.playbackRate = baseRate;
+        updateSyncStatus(
+          delta,
+          Number.isFinite(delta) && absDelta <= SOFT_SYNC_THRESHOLD_S ? "good" : "adjusting",
+          true,
+        );
+        return;
+      }
+      if (!downwardVideo.seeking && absDelta > SOFT_SYNC_THRESHOLD_S) {
+        const rateCorrection = clamp(-delta * 0.45, -0.05, 0.05);
+        downwardVideo.playbackRate = baseRate * (1 + rateCorrection);
+        updateSyncStatus(delta, "adjusting");
+      } else {
+        downwardVideo.playbackRate = baseRate;
+        updateSyncStatus(delta, "good");
+      }
+    }
+    function updateSyncStatus(deltaS, state, force = false) {
+      const now = performance.now();
+      if (!force && now - lastSyncStatusUpdateMs < 180) return;
+      lastSyncStatusUpdateMs = now;
+      syncStatus.className = `sync-status ${state}`;
+      if (state === "ended") {
+        syncStatus.textContent = "Downward recording ended; Aria continues";
+        return;
+      }
+      const deltaMs = Math.round((Number(deltaS) || 0) * 1000);
+      syncStatus.textContent = state === "good"
+        ? `Synchronized · downward ${deltaMs >= 0 ? "+" : ""}${deltaMs} ms`
+        : `Correcting sync · downward ${deltaMs >= 0 ? "+" : ""}${deltaMs} ms`;
+    }
+    function syncAnimationFrame() {
+      syncAnimationId = null;
+      if (!ariaVideo.paused && !ariaVideo.ended) {
+        syncFollower(false);
+        syncAnimationId = window.requestAnimationFrame(syncAnimationFrame);
+      }
+    }
+    function startSyncLoop() {
+      if (syncAnimationId == null) {
+        syncAnimationId = window.requestAnimationFrame(syncAnimationFrame);
+      }
+    }
+    function stopSyncLoop() {
+      if (syncAnimationId != null) {
+        window.cancelAnimationFrame(syncAnimationId);
+        syncAnimationId = null;
+      }
+      downwardVideo.playbackRate = ariaVideo.playbackRate || 1;
+    }
+    function pointerTime(event, el, fullSession = false) {
+      const rect = el.getBoundingClientRect();
+      const ratio = (event.clientX - rect.left) / Math.max(1, rect.width);
+      const start = fullSession ? 0 : viewStartS;
+      const span = fullSession ? duration : viewDuration();
+      return clamp(start + ratio * span, 0, duration);
+    }
+    function clearDragPreview() {
+      for (const el of dragPreviewEls) el.remove();
+      dragPreviewEls = [];
+    }
+    function renderDragPreview(startS, endS) {
+      clearDragPreview();
+      const ranges = availableRangesWithin(startS, endS);
+      for (const range of ranges) {
+        const el = document.createElement("div");
+        const pos = pct(range.start_s, range.end_s);
+        if (!pos) continue;
+        el.className = "drag-preview";
+        el.style.left = pos.left;
+        el.style.width = pos.width;
+        el.style.background = colors[labelSelect.value] || "rgba(22,122,85,.18)";
+        el.style.opacity = ".66";
+        manualTimeline.appendChild(el);
+        dragPreviewEls.push(el);
+      }
+    }
+    function normalizeSegment(raw, idx = 0) {
+      const start = clamp(raw.start_s, 0, duration);
+      const end = clamp(raw.end_s, 0, duration);
+      const label = actions.includes(normalizeAction(raw.motion_label)) ? normalizeAction(raw.motion_label) : "walking";
+      const confidence = ["high", "medium", "low", "uncertain"].includes(String(raw.confidence || "").toLowerCase()) ? String(raw.confidence).toLowerCase() : "medium";
+      const now = new Date().toISOString();
+      return {
+        id: String(raw.id || `manual_${Date.now()}_${idx}_${Math.random().toString(16).slice(2)}`),
+        start_s: Number(Math.min(start, end).toFixed(3)),
+        end_s: Number(Math.max(start, end).toFixed(3)),
+        motion_label: label,
+        confidence,
+        note: String(raw.note || ""),
+        source: "manual_session",
+        created_at: String(raw.created_at || now),
+        updated_at: String(raw.updated_at || now)
+      };
+    }
+    function sortSegments() {
+      manualSegments = manualSegments
+        .map(normalizeSegment)
+        .filter(seg => seg.end_s - seg.start_s >= 0.1)
+        .sort((a, b) => (a.start_s - b.start_s) || (a.end_s - b.end_s));
+    }
+    function segmentBoundaries() {
+      const boundaries = [0, duration];
+      for (const seg of manualSegments) {
+        boundaries.push(seg.start_s, seg.end_s);
+      }
+      return boundaries
+        .filter(value => Number.isFinite(value))
+        .sort((a, b) => a - b);
+    }
+    function snapTimeToBoundary(timeS, boundaries = segmentBoundaries()) {
+      let best = timeS;
+      let bestDistance = SNAP_BOUNDARY_S;
+      for (const boundary of boundaries) {
+        const distance = Math.abs(timeS - boundary);
+        if (distance <= bestDistance) {
+          best = boundary;
+          bestDistance = distance;
+        }
+      }
+      return clamp(best, 0, duration);
+    }
+    function snapRangeToNearbyBoundaries(startS, endS) {
+      const boundaries = segmentBoundaries();
+      let start = snapTimeToBoundary(startS, boundaries);
+      let end = snapTimeToBoundary(endS, boundaries);
+      if (Math.abs(end - start) < MIN_DRAG_LABEL_S) {
+        start = startS;
+        end = endS;
+      }
+      return {
+        start_s: clamp(Math.min(start, end), 0, duration),
+        end_s: clamp(Math.max(start, end), 0, duration)
+      };
+    }
+    function availableRangesWithin(startS, endS) {
+      sortSegments();
+      let start = clamp(Math.min(startS, endS), 0, duration);
+      let end = clamp(Math.max(startS, endS), 0, duration);
+      ({ start_s: start, end_s: end } = snapRangeToNearbyBoundaries(start, end));
+      if (end - start < MIN_DRAG_LABEL_S) return [];
+      const ranges = [];
+      let cursor = start;
+      for (const seg of manualSegments) {
+        if (seg.end_s <= start || seg.start_s >= end) continue;
+        if (seg.start_s > cursor + MIN_DRAG_LABEL_S) {
+          ranges.push({
+            start_s: Number(cursor.toFixed(3)),
+            end_s: Number(Math.min(seg.start_s, end).toFixed(3))
+          });
+        }
+        cursor = Math.max(cursor, seg.end_s);
+      }
+      if (cursor < end - MIN_DRAG_LABEL_S) {
+        ranges.push({
+          start_s: Number(cursor.toFixed(3)),
+          end_s: Number(end.toFixed(3))
+        });
+      }
+      return ranges.filter(range => range.end_s - range.start_s >= MIN_DRAG_LABEL_S);
+    }
+    function describeRanges(ranges) {
+      if (!ranges.length) return "No unlabeled time selected.";
+      if (ranges.length === 1) return `${fmt(ranges[0].start_s)} - ${fmt(ranges[0].end_s)}`;
+      return `${ranges.length} unlabeled parts: ${ranges.map(range => `${fmt(range.start_s)}-${fmt(range.end_s)}`).join(", ")}`;
+    }
+    function clearPendingSelection(render = true) {
+      pendingSelection = null;
+      if (render) renderAll();
+    }
+    function setPendingSelection(startS, endS) {
+      const ranges = availableRangesWithin(startS, endS);
+      if (!ranges.length) {
+        pendingSelection = null;
+        saveStatus.textContent = "That drag range only covered existing labels. Delete or edit an existing label if you want to change it.";
+        renderAll();
+        return;
+      }
+      pendingSelection = {
+        start_s: clamp(Math.min(startS, endS), 0, duration),
+        end_s: clamp(Math.max(startS, endS), 0, duration),
+        ranges
+      };
+      saveStatus.textContent = "Range selected. Choose a motion label to save it.";
+      renderAll();
+    }
+    function applyPendingLabel(label) {
+      if (!pendingSelection) return;
+      const selection = pendingSelection;
+      pendingSelection = null;
+      const created = addManualSegment(selection.start_s, selection.end_s, label, confidenceSelect.value, "");
+      if (created.length) {
+        saveStatus.textContent = `Added ${label} label for ${describeRanges(created)}.`;
+      }
+    }
+    function renderPendingPanel() {
+      if (!pendingSelection) {
+        pendingPanel.classList.add("hidden");
+        pendingRangeText.textContent = "No range selected.";
+        pendingRangeHint.textContent = "";
+        return;
+      }
+      pendingPanel.classList.remove("hidden");
+      pendingRangeText.textContent = `Selected: ${describeRanges(pendingSelection.ranges)}`;
+      pendingRangeHint.textContent = pendingSelection.ranges.length > 1
+        ? "Existing labels inside your drag were skipped."
+        : "Choose a motion below to save this range.";
+    }
+    function snapNewSegmentsToNeighbors(newSegments) {
+      const ids = new Set(newSegments.map(seg => seg.id));
+      if (!ids.size) return;
+      sortSegments();
+      const now = new Date().toISOString();
+      for (let i = 0; i < manualSegments.length; i += 1) {
+        const seg = manualSegments[i];
+        if (!ids.has(seg.id)) continue;
+        let start = seg.start_s;
+        let end = seg.end_s;
+        const prev = manualSegments[i - 1];
+        const next = manualSegments[i + 1];
+        if (start > 0 && start <= SNAP_BOUNDARY_S) start = 0;
+        if (prev) {
+          const gapBefore = start - prev.end_s;
+          if (gapBefore > 0 && gapBefore <= SNAP_BOUNDARY_S) start = prev.end_s;
+        }
+        if (duration - end > 0 && duration - end <= SNAP_BOUNDARY_S) end = duration;
+        if (next) {
+          const gapAfter = next.start_s - end;
+          if (gapAfter > 0 && gapAfter <= SNAP_BOUNDARY_S) end = next.start_s;
+        }
+        manualSegments[i] = {
+          ...seg,
+          start_s: Number(start.toFixed(3)),
+          end_s: Number(end.toFixed(3)),
+          updated_at: now
+        };
+      }
+      sortSegments();
+    }
+    function gaps() {
+      sortSegments();
+      const result = [];
+      let cursor = 0;
+      for (const seg of manualSegments) {
+        if (seg.start_s > cursor + 0.1) result.push({ start_s: cursor, end_s: seg.start_s });
+        cursor = Math.max(cursor, seg.end_s);
+      }
+      if (cursor < duration - 0.1) result.push({ start_s: cursor, end_s: duration });
+      return result;
+    }
+    function addManualSegment(startS, endS, label, confidence = "medium", note = "") {
+      const ranges = availableRangesWithin(startS, endS);
+      if (!ranges.length) {
+        saveStatus.textContent = "No unlabeled time in that drag range; existing labels were kept.";
+        return [];
+      }
+      const now = new Date().toISOString();
+      const newSegments = ranges.map((range, idx) => normalizeSegment({
+        id: `manual_${Date.now()}_${idx}_${Math.random().toString(16).slice(2)}`,
+        start_s: range.start_s,
+        end_s: range.end_s,
+        motion_label: label,
+        confidence,
+        note,
+        created_at: now,
+        updated_at: now
+      }));
+      manualSegments = manualSegments.concat(newSegments);
+      snapNewSegmentsToNeighbors(newSegments);
+      selectedId = newSegments[0]?.id || selectedId;
+      sortSegments();
+      renderAll();
+      scheduleSave();
+      return newSegments;
+    }
+    function selectedSegment() {
+      return manualSegments.find(seg => seg.id === selectedId) || null;
+    }
+    function deleteManualSegment(id) {
+      if (!id) return;
+      const deleted = manualSegments.find(seg => seg.id === id);
+      manualSegments = manualSegments.filter(seg => seg.id !== id);
+      pendingSelection = null;
+      if (selectedId === id) {
+        selectedId = manualSegments[0]?.id || "";
+      }
+      renderAll();
+      scheduleSave();
+      saveStatus.textContent = deleted
+        ? `Deleted ${deleted.motion_label} label (${fmt(deleted.start_s)} - ${fmt(deleted.end_s)}).`
+        : "Deleted selected label.";
+    }
+    function relabelSelectedSegment(label) {
+      const seg = selectedSegment();
+      const normalized = normalizeAction(label);
+      if (!seg || !actions.includes(normalized)) return;
+      const now = new Date().toISOString();
+      manualSegments = manualSegments.map(item => {
+        if (item.id !== seg.id) return item;
+        return {
+          ...item,
+          motion_label: normalized,
+          updated_at: now
+        };
+      });
+      segmentLabelSelect.value = normalized;
+      pendingSelection = null;
+      renderAll();
+      scheduleSave();
+      saveStatus.textContent = `Changed selected label to ${normalized} (${fmt(seg.start_s)} - ${fmt(seg.end_s)}).`;
+    }
+    function scheduleSave() {
+      saveStatus.textContent = "Unsaved changes...";
+      window.clearTimeout(saveTimer);
+      saveTimer = window.setTimeout(() => saveManualSegments(true), 800);
+    }
+    function localKey() {
+      return `pd-insighter-session-manual:${trialId}`;
+    }
+    async function loadManualSegments() {
+      try {
+        const response = await fetch(`/api/session-manual-segments?trial_id=${encodeURIComponent(trialId)}`, { cache: "no-store" });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const payload = await response.json();
+        manualSegments = (payload.segments || []).map(normalizeSegment);
+        window.localStorage.setItem(localKey(), JSON.stringify(manualSegments));
+        saveStatus.textContent = manualSegments.length ? "Manual labels loaded from file" : "No manual labels yet";
+      } catch (error) {
+        const locallySaved = JSON.parse(window.localStorage.getItem(localKey()) || "[]");
+        const initialSegments = data.initial_manual_segments || [];
+        manualSegments = (locallySaved.length ? locallySaved : initialSegments).map(normalizeSegment);
+        saveStatus.textContent = locallySaved.length
+          ? "Manual labels loaded locally"
+          : (manualSegments.length ? "Saved manual labels loaded from this static demo" : `Manual labels unavailable: ${error}`);
+      }
+      sortSegments();
+      selectedId = manualSegments[0]?.id || "";
+      renderAll();
+    }
+    async function saveManualSegments(silent = false) {
+      sortSegments();
+      window.localStorage.setItem(localKey(), JSON.stringify(manualSegments));
+      if (!silent) saveStatus.textContent = "Saving...";
+      try {
+        const response = await fetch("/api/session-manual-segments", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ trial_id: trialId, segments: manualSegments })
+        });
+        if (!response.ok) {
+          const err = await response.json().catch(() => ({}));
+          throw new Error(err.error || `HTTP ${response.status}`);
+        }
+        const payload = await response.json();
+        manualSegments = (payload.segments || []).map(normalizeSegment);
+        sortSegments();
+        window.localStorage.setItem(localKey(), JSON.stringify(manualSegments));
+        saveStatus.textContent = `Saved ${manualSegments.length} segment(s) to file`;
+      } catch (error) {
+        saveStatus.textContent = `Saved locally; file save failed: ${error}`;
+      }
+      renderAll();
+    }
+    function renderOverviewTimeline() {
+      overviewTimeline.innerHTML = "";
+      for (const seg of modelSegments) {
+        const el = document.createElement("div");
+        const pos = pctFull(seg.start_s, seg.end_s);
+        el.className = "overview-seg overview-model-seg";
+        el.style.left = pos.left;
+        el.style.width = pos.width;
+        const acts = modelActions(seg.label);
+        el.style.background = acts.length === 1 ? colors[acts[0]] : String(seg.color || "#b6bec6");
+        el.title = `Model: ${seg.label} | ${fmt(seg.start_s)} - ${fmt(seg.end_s)}`;
+        overviewTimeline.appendChild(el);
+      }
+      for (const seg of manualSegments) {
+        const el = document.createElement("div");
+        const pos = pctFull(seg.start_s, seg.end_s);
+        el.className = "overview-seg overview-manual-seg";
+        el.style.left = pos.left;
+        el.style.width = pos.width;
+        el.style.background = colors[seg.motion_label] || colors.missing;
+        el.title = `Manual: ${seg.motion_label} | ${fmt(seg.start_s)} - ${fmt(seg.end_s)}`;
+        overviewTimeline.appendChild(el);
+      }
+      const windowEl = document.createElement("div");
+      const pos = pctFull(viewStartS, viewEndS);
+      windowEl.className = "overview-window";
+      windowEl.style.left = pos.left;
+      windowEl.style.width = pos.width;
+      overviewTimeline.appendChild(windowEl);
+    }
+    function renderModelTimeline() {
+      modelTimeline.innerHTML = "";
+      for (const seg of modelSegments) {
+        const el = document.createElement("div");
+        const pos = pct(seg.start_s, seg.end_s);
+        if (!pos) continue;
+        el.className = "model-seg";
+        el.style.left = pos.left;
+        el.style.width = pos.width;
+        const acts = modelActions(seg.label);
+        el.style.background = acts.length === 1 ? colors[acts[0]] : String(seg.color || "#b6bec6");
+        el.title = `${seg.label} | ${fmt(seg.start_s)} - ${fmt(seg.end_s)}`;
+        el.addEventListener("pointerdown", event => {
+          event.preventDefault();
+          seek(pointerTime(event, modelTimeline), true);
+        });
+        modelTimeline.appendChild(el);
+      }
+    }
+    function renderManualTimeline() {
+      manualTimeline.innerHTML = "";
+      for (const gap of gaps()) {
+        const el = document.createElement("div");
+        const pos = pct(gap.start_s, gap.end_s);
+        if (!pos) continue;
+        el.className = "gap-seg";
+        el.style.left = pos.left;
+        el.style.width = pos.width;
+        el.title = `Unlabeled gap | ${fmt(gap.start_s)} - ${fmt(gap.end_s)}`;
+        el.addEventListener("click", event => {
+          if (Date.now() < suppressTimelineClickUntil) return;
+          event.stopPropagation();
+          selectedId = "";
+          seek(gap.start_s, false);
+          editorStatus.textContent = `Gap selected: ${fmt(gap.start_s)} - ${fmt(gap.end_s)}. Use Fill Current Gap.`;
+        });
+        manualTimeline.appendChild(el);
+      }
+      if (pendingSelection) {
+        for (const range of pendingSelection.ranges) {
+          const pos = pct(range.start_s, range.end_s);
+          if (!pos) continue;
+          const el = document.createElement("div");
+          el.className = "pending-seg";
+          el.style.left = pos.left;
+          el.style.width = pos.width;
+          el.title = `Selected unlabeled range | ${fmt(range.start_s)} - ${fmt(range.end_s)}`;
+          manualTimeline.appendChild(el);
+        }
+      }
+      for (const seg of manualSegments) {
+        const el = document.createElement("div");
+        const pos = pct(seg.start_s, seg.end_s);
+        if (!pos) continue;
+        el.className = `manual-seg${seg.id === selectedId ? " active" : ""}`;
+        el.dataset.id = seg.id;
+        el.style.left = pos.left;
+        el.style.width = pos.width;
+        el.style.background = colors[seg.motion_label] || colors.missing;
+        el.innerHTML = `
+          <span>${escapeHtml(seg.motion_label)} · ${fmt(seg.start_s)}-${fmt(seg.end_s)}</span>
+          <button class="icon-button danger manual-delete" type="button" aria-label="Delete ${escapeHtml(seg.motion_label)} label" title="Delete this label">×</button>
+        `;
+        el.title = `${seg.motion_label} | ${fmt(seg.start_s)} - ${fmt(seg.end_s)} | ${seg.confidence}`;
+        const deleteButton = el.querySelector(".manual-delete");
+        deleteButton.addEventListener("pointerdown", event => {
+          event.stopPropagation();
+        });
+        deleteButton.addEventListener("click", event => {
+          event.stopPropagation();
+          deleteManualSegment(seg.id);
+        });
+        el.addEventListener("click", event => {
+          if (Date.now() < suppressTimelineClickUntil) return;
+          event.stopPropagation();
+          selectedId = seg.id;
+          seek(seg.start_s, false);
+          renderAll();
+        });
+        manualTimeline.appendChild(el);
+      }
+      renderPlayheads(Number(ariaVideo.currentTime || 0));
+    }
+    function renderPlayheads(timeS) {
+      const oldOverviewPlayhead = overviewTimeline.querySelector(".playhead");
+      if (oldOverviewPlayhead) oldOverviewPlayhead.remove();
+      const overviewPlayhead = document.createElement("div");
+      overviewPlayhead.className = "playhead";
+      overviewPlayhead.style.left = `${duration > 0 ? (clamp(timeS, 0, duration) / duration) * 100 : 0}%`;
+      overviewTimeline.appendChild(overviewPlayhead);
+      for (const tl of [modelTimeline, manualTimeline]) {
+        const old = tl.querySelector(".playhead");
+        if (old) old.remove();
+        if (timeS < viewStartS || timeS > viewEndS) continue;
+        const playhead = document.createElement("div");
+        playhead.className = "playhead";
+        playhead.style.left = `${((clamp(timeS, viewStartS, viewEndS) - viewStartS) / viewDuration()) * 100}%`;
+        tl.appendChild(playhead);
+      }
+      scrubber.value = String(clamp(timeS, 0, duration));
+      document.getElementById("timeNow").textContent = fmt(timeS);
+    }
+    function renderSegmentEditor() {
+      segmentSelect.innerHTML = "";
+      for (const seg of manualSegments) {
+        const option = document.createElement("option");
+        option.value = seg.id;
+        option.textContent = `${seg.motion_label} | ${fmt(seg.start_s)} - ${fmt(seg.end_s)}`;
+        option.selected = seg.id === selectedId;
+        segmentSelect.appendChild(option);
+      }
+      const seg = selectedSegment();
+      if (!seg) {
+        startInput.value = "";
+        endInput.value = "";
+        noteInput.value = "";
+        editorStatus.textContent = "No segment selected yet.";
+        document.querySelectorAll("[data-relabel-action]").forEach(btn => {
+          btn.disabled = true;
+          btn.classList.remove("active");
+        });
+        return;
+      }
+      startInput.value = seg.start_s.toFixed(2);
+      endInput.value = seg.end_s.toFixed(2);
+      segmentLabelSelect.value = seg.motion_label;
+      segmentConfidenceSelect.value = seg.confidence;
+      noteInput.value = seg.note || "";
+      document.querySelectorAll("[data-relabel-action]").forEach(btn => {
+        const label = btn.getAttribute("data-relabel-action") || "";
+        btn.disabled = false;
+        btn.classList.toggle("active", label === seg.motion_label);
+      });
+      editorStatus.textContent = `Editing ${seg.motion_label}, ${fmt(seg.start_s)} - ${fmt(seg.end_s)}.`;
+    }
+    function renderSegmentList() {
+      if (!manualSegments.length) {
+        segmentList.innerHTML = `<p class="small">No manual segments yet. Drag on the manual timeline or use Start Label Here / End Here + Save.</p>`;
+        return;
+      }
+      segmentList.innerHTML = manualSegments.map(seg => `
+        <div class="segment-row">
+          <button class="segment-main" type="button" data-id="${escapeHtml(seg.id)}" style="background:${colors[seg.motion_label] || colors.missing};">
+            <b>${escapeHtml(seg.motion_label)}</b> <span class="mono">${fmt(seg.start_s)} - ${fmt(seg.end_s)}</span> <span>${escapeHtml(seg.confidence)}</span>
+          </button>
+          <button class="danger segment-list-delete" type="button" data-delete-id="${escapeHtml(seg.id)}" title="Delete this label">Delete</button>
+        </div>
+      `).join("");
+      segmentList.querySelectorAll("button[data-id]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          selectedId = btn.getAttribute("data-id") || "";
+          const seg = selectedSegment();
+          if (seg) seek(seg.start_s, false);
+          renderAll();
+        });
+      });
+      segmentList.querySelectorAll("button[data-delete-id]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          deleteManualSegment(btn.getAttribute("data-delete-id") || "");
+        });
+      });
+    }
+    function renderLegend() {
+      document.getElementById("legend").innerHTML = actions.map(action => (
+        `<span><i class="swatch" style="background:${colors[action]}"></i>${action}</span>`
+      )).join("") + `<span><i class="swatch" style="background:repeating-linear-gradient(135deg, rgba(185,67,56,.18), rgba(185,67,56,.18) 8px, rgba(185,67,56,.06) 8px, rgba(185,67,56,.06) 16px);"></i>unlabeled gap</span>`;
+    }
+    function computeAgreement() {
+      let covered = 0;
+      let exact = 0;
+      let transitionAware = 0;
+      for (const manual of manualSegments) {
+        covered += manual.end_s - manual.start_s;
+        for (const model of modelSegments) {
+          const start = Math.max(manual.start_s, model.start_s);
+          const end = Math.min(manual.end_s, model.end_s);
+          if (end <= start) continue;
+          const overlap = end - start;
+          const acts = modelActions(model.label);
+          if (normalizeAction(model.label) === manual.motion_label) exact += overlap;
+          if (acts.includes(manual.motion_label)) transitionAware += overlap;
+        }
+      }
+      return {
+        covered,
+        coverage: duration > 0 ? covered / duration : 0,
+        gapCount: gaps().length,
+        exact: covered > 0 ? exact / covered : null,
+        transitionAware: covered > 0 ? transitionAware / covered : null
+      };
+    }
+    function percent(value) {
+      return value == null ? "--" : `${(value * 100).toFixed(1)}%`;
+    }
+    function renderMetrics() {
+      const m = computeAgreement();
+      document.getElementById("coverageMetric").textContent = percent(m.coverage);
+      document.getElementById("gapMetric").textContent = String(m.gapCount);
+      document.getElementById("transitionAwareMetric").textContent = percent(m.transitionAware);
+      document.getElementById("exactMetric").textContent = percent(m.exact);
+    }
+    function renderAll() {
+      sortSegments();
+      renderOverviewTimeline();
+      renderModelTimeline();
+      renderManualTimeline();
+      renderSegmentEditor();
+      renderSegmentList();
+      renderLegend();
+      renderMetrics();
+      renderPendingPanel();
+      updateTimelineWindowStatus();
+    }
+    function saveSelectedSegmentFromEditor() {
+      const seg = selectedSegment();
+      if (!seg) return;
+      const start = clamp(Number(startInput.value), 0, duration);
+      const end = clamp(Number(endInput.value), 0, duration);
+      const newStart = Math.min(start, end);
+      const newEnd = Math.max(start, end);
+      const newLabel = normalizeAction(segmentLabelSelect.value);
+      const confidence = segmentConfidenceSelect.value || "medium";
+      const note = noteInput.value || "";
+      const id = seg.id;
+      const now = new Date().toISOString();
+      if (Math.abs(newStart - seg.start_s) < 0.001 && Math.abs(newEnd - seg.end_s) < 0.001) {
+        manualSegments = manualSegments.map(item => {
+          if (item.id !== id) return item;
+          return {
+            ...item,
+            motion_label: newLabel,
+            confidence,
+            note,
+            updated_at: now
+          };
+        });
+        pendingSelection = null;
+        renderAll();
+        scheduleSave();
+        saveStatus.textContent = `Updated selected segment (${fmt(newStart)} - ${fmt(newEnd)}).`;
+        return;
+      }
+      const previousSegments = manualSegments.slice();
+      manualSegments = manualSegments.filter(item => item.id !== id);
+      pendingSelection = null;
+      const created = addManualSegment(newStart, newEnd, newLabel, confidence, note);
+      if (!created.length) {
+        manualSegments = previousSegments;
+        selectedId = id;
+        renderAll();
+        saveStatus.textContent = "Could not move this segment because the new range is already labeled.";
+        return;
+      }
+      selectedId = created[0].id;
+      renderAll();
+      scheduleSave();
+    }
+    function currentGap() {
+      const time = Number(ariaVideo.currentTime || 0);
+      return gaps().find(gap => time >= gap.start_s - 0.001 && time <= gap.end_s + 0.001) || gaps()[0] || null;
+    }
+    function bindDragLabeling() {
+      manualTimeline.addEventListener("pointerdown", event => {
+        event.preventDefault();
+        event.stopPropagation();
+        const pointerStart = pointerTime(event, manualTimeline);
+        const playheadStart = clamp(ariaVideo.currentTime || 0, 0, duration);
+        const canStartFromPlayhead = usePlayheadDragStartCheckbox.checked
+          && playheadStart >= viewStartS - 0.001
+          && playheadStart <= viewEndS + 0.001;
+        dragStartS = canStartFromPlayhead ? playheadStart : pointerStart;
+        if (usePlayheadDragStartCheckbox.checked && !canStartFromPlayhead) {
+          saveStatus.textContent = "Playhead is outside this zoom window, so drag started from the mouse point.";
+        }
+        dragStartClientX = event.clientX;
+        dragPointerId = event.pointerId;
+        dragStartedOnSegmentId = event.target.closest(".manual-seg")?.dataset.id || "";
+        dragHasMoved = false;
+        renderDragPreview(dragStartS, dragStartS);
+        try {
+          manualTimeline.setPointerCapture(event.pointerId);
+        } catch {
+          // Pointer capture is a convenience; dragging still works without it.
+        }
+      });
+      manualTimeline.addEventListener("pointermove", event => {
+        if (dragPointerId != null && event.pointerId !== dragPointerId) return;
+        if (dragStartS == null) return;
+        const now = pointerTime(event, manualTimeline);
+        if (Math.abs(event.clientX - dragStartClientX) >= DRAG_PIXEL_THRESHOLD || Math.abs(now - dragStartS) >= MIN_DRAG_LABEL_S) {
+          dragHasMoved = true;
+        }
+        renderDragPreview(dragStartS, now);
+      });
+      manualTimeline.addEventListener("pointerup", event => {
+        if (dragPointerId != null && event.pointerId !== dragPointerId) return;
+        if (dragStartS == null) return;
+        const end = pointerTime(event, manualTimeline);
+        clearDragPreview();
+        const start = dragStartS;
+        const clickedTime = end;
+        const clickedSegmentId = dragStartedOnSegmentId;
+        const shouldCreateLabel = dragHasMoved && Math.abs(end - start) >= MIN_DRAG_LABEL_S;
+        dragStartS = null;
+        dragPointerId = null;
+        dragStartedOnSegmentId = "";
+        dragHasMoved = false;
+        if (shouldCreateLabel) {
+          suppressTimelineClickUntil = Date.now() + 350;
+          setPendingSelection(start, end);
+        } else if (clickedSegmentId) {
+          selectedId = clickedSegmentId;
+          const seg = selectedSegment();
+          if (seg) seek(seg.start_s, false);
+          renderAll();
+        } else {
+          seek(clickedTime, false);
+        }
+      });
+      manualTimeline.addEventListener("pointercancel", () => {
+        clearDragPreview();
+        dragStartS = null;
+        dragPointerId = null;
+        dragStartedOnSegmentId = "";
+        dragHasMoved = false;
+      });
+    }
+    function applyRotation(video, turns) {
+      const n = ((turns % 4) + 4) % 4;
+      video.style.transform = n % 2 === 1
+        ? `translate(-50%, -50%) rotate(${n * 90}deg)`
+        : `rotate(${n * 90}deg)`;
+      video.classList.toggle("rotated-quarter", n % 2 === 1);
+      if (n % 2 === 1) {
+        const frame = video.parentElement;
+        const rect = frame ? frame.getBoundingClientRect() : null;
+        if (rect && rect.width > 0 && rect.height > 0) {
+          // Size from the natural video aspect before rotating. This keeps the
+          // rotated video fully visible instead of stretching it into the frame.
+          const naturalW = video.videoWidth || rect.height;
+          const naturalH = video.videoHeight || rect.width;
+          const scale = Math.min(rect.width / naturalH, rect.height / naturalW);
+          video.style.setProperty("--rotated-video-width", `${naturalW * scale}px`);
+          video.style.setProperty("--rotated-video-height", `${naturalH * scale}px`);
+        }
+      } else {
+        video.style.removeProperty("--rotated-video-width");
+        video.style.removeProperty("--rotated-video-height");
+      }
+    }
+    function init() {
+      document.getElementById("trialPill").textContent = trialId;
+      document.getElementById("fullReviewLink").href = data.full_review_href || "index.html";
+      document.getElementById("strideReviewLink").href = data.stride_review_href || "pd_insighter_stride_review.html";
+      const transitionReviewLink = document.getElementById("transitionReviewLink");
+      if (data.transition_review_href) {
+        transitionReviewLink.href = data.transition_review_href;
+      } else {
+        transitionReviewLink.hidden = true;
+      }
+      const trialJumpSelect = document.getElementById("trialJumpSelect");
+      (data.trial_jump_options || []).forEach(item => {
+        const option = document.createElement("option");
+        option.value = item.href;
+        option.textContent = item.trial_id === "__selector__" ? "All Trials" : item.label;
+        option.selected = item.trial_id === trialId;
+        trialJumpSelect.appendChild(option);
+      });
+      trialJumpSelect.addEventListener("change", event => {
+        if (event.target.value) window.location.href = event.target.value;
+      });
+      document.getElementById("timeTotal").textContent = fmt(duration);
+      downwardVideo.src = data.downward_session_video_uri;
+      ariaVideo.src = data.aria_session_video_uri;
+      scrubber.max = String(duration);
+      scrubber.step = "0.05";
+      if (duration <= 120) {
+        timelineWindowSelect.value = "full";
+      }
+      setTimelineWindow(0, timelineWindowSize(), false);
+      applyRotation(downwardVideo, downwardTurns);
+      applyRotation(ariaVideo, ariaTurns);
+      bindDragLabeling();
+      loadManualSegments();
+    }
+    playBtn.addEventListener("click", playBoth);
+    pauseBtn.addEventListener("click", pauseBoth);
+    pendingActionButtons.addEventListener("click", event => {
+      const label = event.target.closest("button[data-pending-label]")?.dataset.pendingLabel;
+      if (label) applyPendingLabel(label);
+    });
+    document.getElementById("pendingCancelBtn").addEventListener("click", () => {
+      clearPendingSelection(true);
+      saveStatus.textContent = "Canceled selected range.";
+    });
+    document.addEventListener("keydown", event => {
+      const target = event.target;
+      const tag = String(target?.tagName || "").toLowerCase();
+      const inputType = String(target?.type || "").toLowerCase();
+      const isTyping = target?.isContentEditable
+        || tag === "textarea"
+        || (tag === "input" && !["checkbox", "button", "range"].includes(inputType));
+      const isSpace = event.code === "Space" || event.key === " " || event.key === "Spacebar";
+      if (isSpace && !isTyping) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (!event.repeat) togglePlayback();
+      } else if ((event.code === "Delete" || event.code === "Backspace") && !isTyping && selectedId) {
+        event.preventDefault();
+        event.stopPropagation();
+        deleteManualSegment(selectedId);
+      }
+    }, true);
+    document.addEventListener("keyup", event => {
+      const target = event.target;
+      const tag = String(target?.tagName || "").toLowerCase();
+      const inputType = String(target?.type || "").toLowerCase();
+      const isTyping = target?.isContentEditable
+        || tag === "textarea"
+        || (tag === "input" && !["checkbox", "button", "range"].includes(inputType));
+      const isSpace = event.code === "Space" || event.key === " " || event.key === "Spacebar";
+      if (isSpace && !isTyping) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    }, true);
+    document.getElementById("backBtn").addEventListener("click", () => seek(Number(ariaVideo.currentTime || 0) - 2, true));
+    document.getElementById("forwardBtn").addEventListener("click", () => seek(Number(ariaVideo.currentTime || 0) + 2, true));
+    timelineWindowSelect.addEventListener("change", () => {
+      const center = Number(ariaVideo.currentTime || 0) || ((viewStartS + viewEndS) / 2);
+      setTimelineWindow(center, timelineWindowSize(), true);
+    });
+    document.getElementById("prevWindowBtn").addEventListener("click", () => panTimelineWindow(-1));
+    document.getElementById("nextWindowBtn").addEventListener("click", () => panTimelineWindow(1));
+    document.getElementById("centerWindowBtn").addEventListener("click", () => setTimelineWindow(Number(ariaVideo.currentTime || 0), timelineWindowSize(), true));
+    document.getElementById("fullWindowBtn").addEventListener("click", () => {
+      timelineWindowSelect.value = "full";
+      setTimelineWindow(Number(ariaVideo.currentTime || 0), duration, true);
+    });
+    overviewTimeline.addEventListener("pointerdown", event => {
+      event.preventDefault();
+      const target = pointerTime(event, overviewTimeline, true);
+      seek(target, false);
+      if (timelineWindowSelect.value !== "full") setTimelineWindow(target, timelineWindowSize(), true);
+    });
+    document.getElementById("speedSelect").addEventListener("change", event => {
+      const rate = Number(event.target.value || 1);
+      ariaVideo.playbackRate = rate;
+      downwardVideo.playbackRate = rate;
+    });
+    scrubber.addEventListener("input", event => seek(Number(event.target.value || 0), false));
+    scrubber.addEventListener("change", event => seek(Number(event.target.value || 0), true));
+    ariaVideo.addEventListener("timeupdate", () => {
+      syncFollower(false);
+      if (followWindowCheckbox.checked) ensureTimeInWindow(ariaVideo.currentTime || 0, true);
+      renderPlayheads(ariaVideo.currentTime || 0);
+      renderMetrics();
+    });
+    ariaVideo.addEventListener("play", startSyncLoop);
+    ariaVideo.addEventListener("pause", () => {
+      downwardVideo.pause();
+      stopSyncLoop();
+    });
+    ariaVideo.addEventListener("seeking", () => syncFollower(true));
+    ariaVideo.addEventListener("seeked", () => syncFollower(true));
+    ariaVideo.addEventListener("waiting", () => syncFollower(true));
+    ariaVideo.addEventListener("ratechange", () => syncFollower(false));
+    downwardVideo.addEventListener("play", () => {
+      if (ariaVideo.paused) downwardVideo.pause();
+    });
+    downwardVideo.addEventListener("pause", () => {
+      if (!ariaVideo.paused && Math.abs((downwardVideo.currentTime || 0) - (ariaVideo.currentTime || 0)) > 0.4) syncFollower(true);
+    });
+    modelTimeline.addEventListener("pointerdown", event => {
+      event.preventDefault();
+      seek(pointerTime(event, modelTimeline), true);
+    });
+    document.getElementById("startRangeBtn").addEventListener("click", () => {
+      quickStartS = Number(ariaVideo.currentTime || 0);
+      saveStatus.textContent = `Started ${labelSelect.value} at ${fmt(quickStartS)}.`;
+    });
+    document.getElementById("endRangeBtn").addEventListener("click", () => {
+      if (quickStartS == null) {
+        saveStatus.textContent = "No start time selected yet.";
+        return;
+      }
+      addManualSegment(quickStartS, Number(ariaVideo.currentTime || 0), labelSelect.value, confidenceSelect.value, "");
+      quickStartS = null;
+    });
+    document.getElementById("cancelRangeBtn").addEventListener("click", () => {
+      quickStartS = null;
+      saveStatus.textContent = "Canceled label start.";
+    });
+    document.getElementById("startGapBtn").addEventListener("click", () => {
+      const gap = gaps()[0];
+      if (!gap) {
+        saveStatus.textContent = "No unlabeled gaps left.";
+        return;
+      }
+      seek(gap.start_s, false);
+      saveStatus.textContent = `Next gap: ${fmt(gap.start_s)} - ${fmt(gap.end_s)}.`;
+    });
+    document.getElementById("fillCurrentGapBtn").addEventListener("click", () => {
+      const gap = currentGap();
+      if (!gap) {
+        saveStatus.textContent = "No gap at current time.";
+        return;
+      }
+      addManualSegment(gap.start_s, gap.end_s, labelSelect.value, confidenceSelect.value, "");
+    });
+    document.getElementById("fillAllGapsBtn").addEventListener("click", () => {
+      const allGaps = gaps();
+      if (!allGaps.length) {
+        saveStatus.textContent = "No gaps to fill.";
+        return;
+      }
+      for (const gap of allGaps) {
+        addManualSegment(gap.start_s, gap.end_s, labelSelect.value, confidenceSelect.value, "");
+      }
+      saveManualSegments(false);
+    });
+    document.getElementById("saveAllBtn").addEventListener("click", () => saveManualSegments(false));
+    segmentSelect.addEventListener("change", event => {
+      selectedId = event.target.value;
+      const seg = selectedSegment();
+      if (seg) seek(seg.start_s, false);
+      renderAll();
+    });
+    document.getElementById("saveSegmentBtn").addEventListener("click", saveSelectedSegmentFromEditor);
+    document.querySelectorAll("[data-relabel-action]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        relabelSelectedSegment(btn.getAttribute("data-relabel-action") || "");
+      });
+    });
+    document.getElementById("deleteSegmentBtn").addEventListener("click", () => {
+      deleteManualSegment(selectedId);
+    });
+    document.getElementById("setStartBtn").addEventListener("click", () => {
+      startInput.value = Number(ariaVideo.currentTime || 0).toFixed(2);
+    });
+    document.getElementById("setEndBtn").addEventListener("click", () => {
+      endInput.value = Number(ariaVideo.currentTime || 0).toFixed(2);
+    });
+    document.getElementById("rotateDownwardBtn").addEventListener("click", () => {
+      downwardTurns += 1;
+      applyRotation(downwardVideo, downwardTurns);
+    });
+    document.getElementById("rotateAriaBtn").addEventListener("click", () => {
+      ariaTurns += 1;
+      applyRotation(ariaVideo, ariaTurns);
+    });
+    downwardVideo.addEventListener("loadedmetadata", () => applyRotation(downwardVideo, downwardTurns));
+    ariaVideo.addEventListener("loadedmetadata", () => applyRotation(ariaVideo, ariaTurns));
+    window.addEventListener("resize", () => {
+      applyRotation(downwardVideo, downwardTurns);
+      applyRotation(ariaVideo, ariaTurns);
+    });
+    init();
+  </script>
+</body>
+</html>

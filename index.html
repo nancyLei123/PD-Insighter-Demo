@@ -63,7 +63,7 @@
     .section-head { display: flex; align-items: end; justify-content: space-between; gap: 20px; margin: 42px 4px 18px; }
     .section-head h2 { margin: 0; font: 700 clamp(2rem, 4vw, 3.6rem)/1 Georgia, serif; letter-spacing: -0.035em; }
     .section-head p { max-width: 560px; margin: 0; color: var(--muted); line-height: 1.5; }
-    .trial-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .trial-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
     .trial-card { overflow: hidden; border: 1px solid var(--line); border-radius: 28px; background: var(--panel); box-shadow: var(--shadow); }
     .preview { aspect-ratio: 16 / 9; overflow: hidden; background: #dfe8e1; border-bottom: 1px solid var(--line); }
     .preview img { width: 100%; height: 100%; display: block; object-fit: cover; object-position: top; }
@@ -79,6 +79,9 @@
     .note b { display: block; margin-bottom: 5px; }
     .note span { color: var(--muted); line-height: 1.45; }
     footer { display: flex; justify-content: space-between; gap: 20px; padding: 26px 4px 0; color: var(--muted); font-size: 0.84rem; }
+    @media (max-width: 1180px) {
+      .trial-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
     @media (max-width: 880px) {
       .hero, .trial-grid { grid-template-columns: 1fr; }
       .hero-facts { max-width: 480px; }
@@ -101,9 +104,9 @@
         <p>Explore synchronized Aria and downward video alongside continuous motion prediction, manual labels, step and stride estimates, and first-class transition states.</p>
       </div>
       <div class="hero-facts" aria-label="Demo summary">
-        <div class="fact"><strong>2</strong><span>Representative trials</span></div>
-        <div class="fact"><strong>8</strong><span>Interactive review views</span></div>
-        <div class="fact"><strong>15</strong><span>Frames per second for web video</span></div>
+        <div class="fact"><strong>3</strong><span>Representative trials</span></div>
+        <div class="fact"><strong>12</strong><span>Interactive review views</span></div>
+        <div class="fact"><strong>12-15</strong><span>Frames per second for web video</span></div>
         <div class="fact"><strong>0</strong><span>Raw VRS files required</span></div>
       </div>
     </section>
@@ -125,6 +128,21 @@
             <a class="button" href="Half_hour/pd_insighter_manual_labeling.html">Manual Labels</a>
             <a class="button" href="Half_hour/pd_insighter_stride_review.html">Stride</a>
             <a class="button" href="Half_hour/pd_insighter_transition_review.html">Transitions</a>
+          </div>
+        </div>
+      </article>
+
+      <article class="trial-card">
+        <div class="preview"><img src="assets/60minutes1_full_session.png" alt="60minutes_1 PD Insighter full-session interface" /></div>
+        <div class="trial-copy">
+          <div class="trial-kicker">Extended normal trial</div>
+          <h3>60minutes_1</h3>
+          <p>A 56-minute indoor and outdoor session for evaluating continuous prediction, long-session labels, transitions, and sustained gait patterns.</p>
+          <div class="page-links">
+            <a class="button primary" href="60minutes_1/index.html">Open Full Session</a>
+            <a class="button" href="60minutes_1/pd_insighter_manual_labeling.html">Manual Labels</a>
+            <a class="button" href="60minutes_1/pd_insighter_stride_review.html">Stride</a>
+            <a class="button" href="60minutes_1/pd_insighter_transition_review.html">Transitions</a>
           </div>
         </div>
       </article>
