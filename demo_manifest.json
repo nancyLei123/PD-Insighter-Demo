@@ -1,0 +1,41 @@
+{
+  "format": "pd-insighter-static-demo-v1",
+  "trials": [
+    "Half_hour",
+    "Ntrial3"
+  ],
+  "pages_per_trial": [
+    "index.html",
+    "pd_insighter_manual_labeling.html",
+    "pd_insighter_stride_review.html",
+    "pd_insighter_transition_review.html"
+  ],
+  "media": [
+    {
+      "trial_id": "Half_hour",
+      "view": "aria",
+      "path": "Half_hour/media/aria.mp4",
+      "size_mib": 75.28
+    },
+    {
+      "trial_id": "Half_hour",
+      "view": "downward",
+      "path": "Half_hour/media/downward.mp4",
+      "size_mib": 80.98
+    },
+    {
+      "trial_id": "Ntrial3",
+      "view": "aria",
+      "path": "Ntrial3/media/aria.mp4",
+      "size_mib": 18.12
+    },
+    {
+      "trial_id": "Ntrial3",
+      "view": "downward",
+      "path": "Ntrial3/media/downward.mp4",
+      "size_mib": 23.23
+    }
+  ],
+  "contains_raw_vrs": false,
+  "contains_raw_mps_csv": false
+}

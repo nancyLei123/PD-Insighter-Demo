@@ -1,0 +1,11 @@
+{
+  "source_size": 5620397486,
+  "source_mtime_ns": 1784001174525974177,
+  "profile": {
+    "filter": "fps=15,scale=854:-2",
+    "video_bitrate": "340k",
+    "maxrate": "440k",
+    "bufsize": "880k",
+    "audio_bitrate": null
+  }
+}
