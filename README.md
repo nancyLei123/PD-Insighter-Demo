@@ -49,4 +49,4 @@ The complete three-trial package is about 435 MiB. It includes derived plots, co
 
 ## Sharing Safely
 
-This repository is shared publicly with the owner's confirmation. The videos contain identifiable image and audio data, so do not add raw recordings, raw MPS outputs, credentials, or unapproved participant data.
+This demo is intended for public sharing with the owner's confirmation. The videos contain identifiable image and audio data, so do not add raw recordings, raw MPS outputs, credentials, or unapproved participant data.
